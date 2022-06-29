@@ -4,8 +4,10 @@ CFLAGS = -Wall -Wextra -Werror -std=c++98
 
 HEADER = server.hpp
 
-NAME = containers
+NAME = webserv
+NAME_CLIENT = client
 SRC_FILE =  main.cpp
+CLIENT = client.cpp
 # OBJ_FILE = $(SRC_FILE:.cpp=.o)
 
 all : $(NAME)
@@ -13,13 +15,12 @@ all : $(NAME)
 # %.o:%.cpp
 # 	$(CC) $(CFLAGS)  -c $< -o $@
 
-$(NAME) : $(SRC_FILE) $(HEADER)
+$(NAME) : $(SRC_FILE) $(CLIENT) $(HEADER)
 	@$(CC) $(CFLAGS) $(SRC_FILE) -o $(NAME)
-	@./webserv
-	@make clean
+	@$(CC) $(CFLAGS) $(CLIENT) -o $(NAME_CLIENT)
 
 clean :
-	@rm -f $(NAME) $(D_NAME)
+	@rm -f $(NAME) $(NAME_CLIENT)
 
 fclean : clean
 
