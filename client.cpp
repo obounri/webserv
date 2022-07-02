@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <string>
+#include <stdlib.h>
 
 int main(int ac, char **av) {
 
@@ -16,10 +17,19 @@ int main(int ac, char **av) {
 
         hints.sin_family = AF_INET;
         hints.sin_port = htons(conn_to);     // short, network byte order
-        hints.sin_addr.s_addr = inet_addr("169.254.5.174");
+        hints.sin_addr.s_addr = inet_addr("10.11.6.1");
 
+        char *buffer = new char[10];
+        int rec, sent;
         if ((connect(sockfd, (struct sockaddr *)&hints, sizeof hints)) == 0) {
-            std::cout << "connected, closing connection" << std::endl;
+            std::cout << "connected" << std::endl;
+            sent = send(sockfd,"SYN", 3, MSG_DONTROUTE);
+            std::cout << "SYN sent" << std::endl;
+            rec = recv(sockfd, buffer, 7, MSG_WAITALL);
+            std::cout << "SYN-ACK rec" << std::endl;
+            sent = send(sockfd,"ACK", 3, MSG_DONTROUTE);
+            std::cout << "ACK sent" << std::endl;
+            // close(sockfd);
         }
         else
             std::cout << "connection failed" << std::endl;
