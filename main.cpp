@@ -5,6 +5,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <signal.h>
+#include <fcntl.h>
+#include <arpa/inet.h>
 
 #define MYPORT 5000
 #define DUMMY "<!DOCTYPE html> \
@@ -51,7 +53,7 @@ int main() {
 
         int sockfd, newfd;
         struct sockaddr_in my_addr;
-        struct sockaddr_storage their_addr;
+        struct sockaddr_in their_addr;
         socklen_t   addr_size;
 
         sockfd = socket(PF_INET, SOCK_STREAM, 0);
@@ -61,7 +63,7 @@ int main() {
             perror("setsockopt");
             exit(1);
         }
-
+        // fcntl(sockfd, F_SETFL, O_NONBLOCK);
         my_addr.sin_family = AF_INET;
         my_addr.sin_port = htons(MYPORT);     // short, network byte order
         my_addr.sin_addr.s_addr = 0;
@@ -72,19 +74,30 @@ int main() {
 
         addr_size = sizeof their_addr;
         // int size = sizeof DUMMY;
-        char *buffer = new char[2048];
-        int rec, sent;
+        char *buffer = new char[3];
+        int rec;
         while (1) {
             newfd = accept(sockfd, (struct sockaddr *)&their_addr, &addr_size);
             std::cout << "got connection request from fd = " << newfd << std::endl;
-            rec = recv(sockfd, buffer, sizeof buffer, MSG_WAITALL);
-            std::cout << rec << "\n" << buffer << std::endl;
-            std::cout << "SYN rec" << std::endl;
-            sent = send(newfd,"SYN-ACK", 7, MSG_DONTROUTE);
-            std::cout << "SYN-ACK sent" << std::endl;
-            rec = recv(sockfd, buffer, 3, MSG_WAITALL);
-            std::cout << "ACK rec\nHandshake done" << std::endl;
-            // close(newfd);
+            std::cout << inet_ntoa(their_addr.sin_addr) << std::endl;
+            std::cout << ntohs(their_addr.sin_port) << std::endl;
+            if ((rec = recv(newfd, buffer, 3, 0)) != -1) {
+                std::cout << "SYN received of len " << rec << " content:" << std::endl;
+                std::cout << buffer << std::endl;
+            }
+            else
+                std::cout << "SYN failed" << std::endl;
+
+            int sent;
+            if ((sent = send(newfd,"ACK", 3, 0)) != -1) {
+                std::cout << "SYN, sent = " << sent << std::endl;
+            }
+            else
+                std::cout << "SYN failed" << std::endl;
+            // std::cout << "SYN-ACK sent" << std::endl;
+            // rec = recv(sockfd, buffer, 3, MSG_WAITALL);
+            // std::cout << "ACK rec\nHandshake done" << std::endl;
+            close(newfd);
         }
         close(sockfd);
     // }
