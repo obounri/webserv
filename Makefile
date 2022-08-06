@@ -2,7 +2,8 @@ CC = c++
 
 CFLAGS = -Wall -Wextra -Werror -std=c++98
 
-HEADER = server.hpp
+HEADER = srcs/server/server.hpp \
+		srcs/sockets/sockets.hpp
 
 NAME = webserv
 NAME_CLIENT = client

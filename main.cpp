@@ -8,8 +8,20 @@
 #include <fcntl.h>
 #include <arpa/inet.h>
 
+#include "srcs/sockets/sockets.hpp"
+
 #define MYPORT 5000
-#define DUMMY "<!DOCTYPE html> \
+#define DUMMY "HTTP/1.1 200 OK \
+Date: Mon, 23 May 2005 22:38:34 GMT \
+Content-Type: text/html; charset=UTF-8 \
+Content-Length: 155 \
+Last-Modified: Wed, 08 Jan 2003 23:11:55 GMT \
+Server: Apache/1.3.3.7 (Unix) (Red-Hat/Linux) \
+ETag: \"3f80f-1b6-3e1cb03b\" \
+Accept-Ranges: bytes \
+Connection: close \
+\
+<!DOCTYPE html> \
 <html> \
 <head> \
 <title>Welcome to nginx!</title> \
@@ -32,12 +44,12 @@ Commercial support is available at \
 </html>"
 
 void    shutdown(int signal) {
-    // shutdown server and exit program, close sockets and maybe connections too
+    // shutdown server and _exit program, close sockets and maybe connections too
 
     if (signal == SIGINT) {
         std::cout << "Received SIGINT.." << std::endl;
         std::cout << "Shutting server down.." << std::endl;
-        exit(0);
+        _exit(0);
     }
 }
 
@@ -51,55 +63,34 @@ int main() {
 
         signal(SIGINT, &shutdown);
 
-        int sockfd, newfd;
-        struct sockaddr_in my_addr;
+        int newfd;
         struct sockaddr_in their_addr;
         socklen_t   addr_size;
-
-        sockfd = socket(PF_INET, SOCK_STREAM, 0);
-
-        int yes=1;
-        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes) == -1) {
-            perror("setsockopt");
-            exit(1);
-        }
-        // fcntl(sockfd, F_SETFL, O_NONBLOCK);
-        my_addr.sin_family = AF_INET;
-        my_addr.sin_port = htons(MYPORT);     // short, network byte order
-        my_addr.sin_addr.s_addr = 0;
-        // memset(my_addr.sin_zero, '\0', sizeof my_addr.sin_zero);
-
-        bind(sockfd, (struct sockaddr *)&my_addr, sizeof my_addr);
-        listen(sockfd, 10);
+        Socket listener(AF_INET, SOCK_STREAM, 8080, 10);
 
         addr_size = sizeof their_addr;
         // int size = sizeof DUMMY;
-        char *buffer = new char[3];
-        int rec;
+        int rec, sent;
         while (1) {
-            newfd = accept(sockfd, (struct sockaddr *)&their_addr, &addr_size);
+            char *buffer = new char[30000];
+            newfd = accept(listener.get_socket(), (struct sockaddr *)&their_addr, &addr_size);
             std::cout << "got connection request from fd = " << newfd << std::endl;
             std::cout << inet_ntoa(their_addr.sin_addr) << std::endl;
             std::cout << ntohs(their_addr.sin_port) << std::endl;
-            if ((rec = recv(newfd, buffer, 3, 0)) != -1) {
-                std::cout << "SYN received of len " << rec << " content:" << std::endl;
+            if ((rec = recv(newfd, buffer, 30000, 0)) != -1) {
+                std::cout << "Received message of len " << rec << " content:" << std::endl;
                 std::cout << buffer << std::endl;
             }
             else
-                std::cout << "SYN failed" << std::endl;
-
-            int sent;
-            if ((sent = send(newfd,"ACK", 3, 0)) != -1) {
-                std::cout << "SYN, sent = " << sent << std::endl;
+                std::cout << "Reading failed" << std::endl;
+            if ((sent = send(newfd, DUMMY, sizeof DUMMY, 0)) != -1) {
+                std::cout << "Message sent = " << sent << std::endl;
             }
             else
-                std::cout << "SYN failed" << std::endl;
-            // std::cout << "SYN-ACK sent" << std::endl;
-            // rec = recv(sockfd, buffer, 3, MSG_WAITALL);
-            // std::cout << "ACK rec\nHandshake done" << std::endl;
+                std::cout << "Sending failed" << std::endl;
             close(newfd);
+            delete buffer;
         }
-        close(sockfd);
     // }
     // else
     //     std::cout << "Provide config file" << std::endl;
