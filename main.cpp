@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 
 #include "srcs/sockets/sockets.hpp"
+#include "srcs/server/server.hpp"
 
 #define MYPORT 5000
 #define DUMMY "HTTP/1.1 200 OK \
@@ -62,35 +63,10 @@ int main() {
             // wait for connection
 
         signal(SIGINT, &shutdown);
+        
+        Server server(AF_INET, SOCK_STREAM, MYPORT, 10);
 
-        int newfd;
-        struct sockaddr_in their_addr;
-        socklen_t   addr_size;
-        Socket listener(AF_INET, SOCK_STREAM, 8080, 10);
-
-        addr_size = sizeof their_addr;
-        // int size = sizeof DUMMY;
-        int rec, sent;
-        while (1) {
-            char *buffer = new char[30000];
-            newfd = accept(listener.get_socket(), (struct sockaddr *)&their_addr, &addr_size);
-            std::cout << "got connection request from fd = " << newfd << std::endl;
-            std::cout << inet_ntoa(their_addr.sin_addr) << std::endl;
-            std::cout << ntohs(their_addr.sin_port) << std::endl;
-            if ((rec = recv(newfd, buffer, 30000, 0)) != -1) {
-                std::cout << "Received message of len " << rec << " content:" << std::endl;
-                std::cout << buffer << std::endl;
-            }
-            else
-                std::cout << "Reading failed" << std::endl;
-            if ((sent = send(newfd, DUMMY, sizeof DUMMY, 0)) != -1) {
-                std::cout << "Message sent = " << sent << std::endl;
-            }
-            else
-                std::cout << "Sending failed" << std::endl;
-            close(newfd);
-            delete buffer;
-        }
+        server.run();
     // }
     // else
     //     std::cout << "Provide config file" << std::endl;
