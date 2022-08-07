@@ -20,6 +20,7 @@ public:
 
 Socket::Socket(int domain, int type, int port, int backlog)
 {
+    std::cout << "Constructing socket.." << std::endl;
     if ((sockfd = socket(domain, type, 0)) == -1) {
         std::cout << "Failed initialising socket.. quitting.." << std::endl;
         _exit(EXIT_FAILURE);
@@ -45,6 +46,7 @@ Socket::Socket(int domain, int type, int port, int backlog)
 
 Socket::~Socket()
 {
+    std::cout << "Destroying socket.." << std::endl;
     close(sockfd);
 }
 
