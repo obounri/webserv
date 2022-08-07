@@ -17,19 +17,24 @@ int main(int ac, char **av) {
 
         hints.sin_family = AF_INET;
         hints.sin_port = htons(conn_to);     // short, network byte order
-        hints.sin_addr.s_addr = inet_addr("192.168.1.75");
+        hints.sin_addr.s_addr = inet_addr("192.168.43.26");
 
         int sent;
-        if ((connect(sockfd, (struct sockaddr *)&hints, sizeof hints)) != -1) {
-            std::cout << "connected" << std::endl;
-            if ((sent = send(sockfd, av[2], mess.length(), 0)) != -1) {
-                std::cout << "Message sent = " << sent << std::endl;
+        while (1)
+        {
+            if ((connect(sockfd, (struct sockaddr *)&hints, sizeof hints)) != -1) {
+                std::cout << "connected" << std::endl;
+                if ((sent = send(sockfd, av[2], mess.length(), 0)) != -1) {
+                    std::cout << "Message sent = " << sent << std::endl;
+                }
+                else
+                    std::cout << "Sending failed" << std::endl;
             }
             else
-                std::cout << "Sending failed" << std::endl;
+                std::cout << "connection failed" << std::endl;
+            sleep(1);
         }
-        else
-            std::cout << "connection failed" << std::endl;
+        
 
         close(sockfd);
     }

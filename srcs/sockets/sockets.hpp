@@ -40,6 +40,7 @@ Socket::Socket(int domain, int type, int port, int backlog)
         std::cout << "Failed initialising socket.. quitting.." << std::endl;
         _exit(EXIT_FAILURE);
     }
+    std::cout << "Socket listening.." << std::endl;
 }
 
 Socket::~Socket()
