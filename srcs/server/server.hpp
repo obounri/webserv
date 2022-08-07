@@ -86,6 +86,7 @@ void Server::run() {
                     }
                     else
                         std::cout << "Reading failed" << std::endl << std::endl;
+                    delete buffer;
                     if ((sent = send(i, DUMMY_HTTP_RESPONSE, sizeof DUMMY_HTTP_RESPONSE, 0)) != -1) {
                         std::cout << "Message sent = " << sent << std::endl;
                     }
@@ -93,7 +94,6 @@ void Server::run() {
                         std::cout << "Sending failed" << std::endl;
                     close(i);
                     FD_CLR(i, &read_pool);
-                    delete buffer;
                 }
             }
         }
