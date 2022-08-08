@@ -5,6 +5,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <fcntl.h>
 
 class Socket
 {
@@ -14,7 +15,7 @@ private:
 
 public:
     Socket(int domain, int type, int port, int bklog);
-    int get_socket() { return sockfd; };
+    unsigned int get_socket() { return sockfd; };
     ~Socket();
 };
 
@@ -41,6 +42,7 @@ Socket::Socket(int domain, int type, int port, int backlog)
         std::cout << "Failed initialising socket.. quitting.." << std::endl;
         _exit(EXIT_FAILURE);
     }
+    fcntl(sockfd, F_SETFL, O_NONBLOCK);
     std::cout << "Socket listening.." << std::endl;
 }
 

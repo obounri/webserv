@@ -17,7 +17,7 @@ int main(int ac, char **av) {
 
         hints.sin_family = AF_INET;
         hints.sin_port = htons(conn_to);     // short, network byte order
-        hints.sin_addr.s_addr = inet_addr("127.0.0.1");
+        hints.sin_addr.s_addr = inet_addr("192.168.1.69");
 
         int sent;
         while (n--)
