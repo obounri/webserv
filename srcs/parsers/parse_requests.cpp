@@ -4,6 +4,6 @@ struct request
     /* data */
 };
 
-request request_parser(char *request) {
+request parse_request(char *request) {
 
 }

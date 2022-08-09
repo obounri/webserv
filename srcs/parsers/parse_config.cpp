@@ -4,6 +4,6 @@ struct config
     /* data */
 };
 
-config config_parser(char *config_path) {
+config parse_config(char *config_path) {
 
 }
