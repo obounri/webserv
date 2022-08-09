@@ -4,6 +4,7 @@
 #include "srcs/server/server.hpp"
 
 #define MYPORT 5000
+#define VIRTUAL_SERVERS 3
 
 Server * servers;
 
