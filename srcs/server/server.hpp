@@ -8,31 +8,41 @@
 #define MAX_REQUEST_SIZE 1024
 #define DUMMY_HTTP_RESPONSE "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!"
 
+// struct client
+// {
+//     int         fd;
+//     std::string ip;
+
+// };
+
+
 class Server
 {
     private:
         /* data */
         Socket * listener; // listener socket(s)
         int      keq;
+
         // void    poll_connections();
         void    accept_new_connection();
         void    destroy_connection(int fd);
         void    handle_request(int fd);
+        void    send_request(int fd);
         // void    receiver();
         // void    sender();
     public:
-        Server(int domain, int type, int port, int backlog);
+        Server(int domain, int type, int interface, int port, int backlog);
         ~Server();
 
         void            run();
 };
 
-Server::Server(int domain, int type, int port, int backlog)
+Server::Server(int domain, int type, int interface, int port, int backlog)
 {
     struct kevent evSet;
 
     std::cout << "constructing server.." << std::endl;
-    listener = new Socket(domain, type, port, backlog);
+    listener = new Socket(domain, type, interface, port, backlog);
     keq = kqueue();
     EV_SET(&evSet, listener->get_socket(), EVFILT_READ, EV_ADD, 0, 0, NULL);
     kevent(keq, &evSet, 1, NULL, 0, NULL);
@@ -53,6 +63,7 @@ void    Server::accept_new_connection()
     addr_size = sizeof their_addr;
 
     newfd = accept(listener->get_socket(), (sockaddr *)&their_addr, &addr_size);
+    // evSet = new struct kevent[2];
     EV_SET(&evSet, newfd, EVFILT_READ, EV_ADD, 0, 0, NULL);
     kevent(keq, &evSet, 1, NULL, 0, NULL);
     std::cout << "got connection request from fd = " << newfd << ".." << std::endl;
@@ -72,7 +83,8 @@ void    Server::destroy_connection(int fd)
 
 void    Server::handle_request(int fd)
 {
-    int rec, sent;
+    int rec;
+    struct kevent evSet;
 
     char *buffer = new char[MAX_REQUEST_SIZE];
     if ((rec = recv(fd, buffer, MAX_REQUEST_SIZE, 0)) != -1) {
@@ -82,11 +94,26 @@ void    Server::handle_request(int fd)
     else
         std::cout << "reading failed.." << std::endl << std::endl;
     delete buffer;
+    EV_SET(&evSet, fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+    kevent(keq, &evSet, 1, NULL, 0, NULL);
+    EV_SET(&evSet, fd, EVFILT_WRITE, EV_ADD, 0, 0, NULL);
+    kevent(keq, &evSet, 1, NULL, 0, NULL);
+}
+
+void    Server::send_request(int fd)
+{
+    int sent;
+    struct kevent evSet;
+
+    std::cout << ">> fd " << fd << " is ready for writing" << std::endl;
     if ((sent = send(fd, DUMMY_HTTP_RESPONSE, sizeof DUMMY_HTTP_RESPONSE, 0)) != -1) {
         std::cout << "message sent = " << sent << std::endl;
     }
     else
         std::cout << "sending failed.." << std::endl;
+    EV_SET(&evSet, fd, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+    kevent(keq, &evSet, 1, NULL, 0, NULL);
+    close(fd);
 }
 
 void Server::run() {
@@ -103,8 +130,13 @@ void Server::run() {
                 destroy_connection(evList[i].ident);
             else if (evList[i].filter == EVFILT_READ)
                 handle_request(evList[i].ident);
+            else if (evList[i].filter == EVFILT_WRITE)
+                send_request(evList[i].ident);
         }
     }
 }
+
+// int kevent(int kq, const struct kevent *changelist, int nchanges, struct kevent *eventlist, int nevents, const struct timespec *timeout);
+// EV_SET(&kev, ident, filter, flags, fflags, data, udata);
 
 #endif

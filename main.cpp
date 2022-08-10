@@ -2,17 +2,18 @@
 #include <signal.h>
 
 #include "srcs/server/server.hpp"
+#include "srcs/parsers/parse_config.cpp"
 
 #define MYPORT 5000
-#define VIRTUAL_SERVERS 3
+#define V_SERVERS 3
 
-Server * servers;
+Server * server;
 
 void shutdown(int signal) {
     if (signal == SIGINT) {
-        std::cout << "Received SIGINT.." << std::endl;
-        std::cout << "Shutting server down.." << std::endl;
-        servers->~Server();
+        std::cout << " received SIGINT.." << std::endl;
+        std::cout << "shutting server down.." << std::endl;
+        delete server;
         _exit(0);
     }
 }
@@ -24,11 +25,12 @@ int main() {
             // parse config file
             // init server
             // wait for connection
-
+        config data;
+    
+        data = parse_config(/* char *config_path */);
+        server = new Server(data.domain, data.type, data.interface, MYPORT, 10);
         signal(SIGINT, &shutdown);
-        // Server server(AF_INET, SOCK_STREAM, MYPORT, 10);
-        servers = new Server(AF_INET, SOCK_STREAM, MYPORT, 10);
-        servers->run();
+        server->run();
     // }
     // else
     //     std::cout << "Provide config file" << std::endl;

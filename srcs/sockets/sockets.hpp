@@ -14,12 +14,12 @@ private:
     struct sockaddr_in address;
 
 public:
-    Socket(int domain, int type, int port, int bklog);
+    Socket(int domain, int type, int interface, int port, int backlog);
     unsigned int get_socket() { return sockfd; };
     ~Socket();
 };
 
-Socket::Socket(int domain, int type, int port, int backlog)
+Socket::Socket(int domain, int type, int interface, int port, int backlog)
 {
     std::cout << "constructing socket.." << std::endl;
     if ((sockfd = socket(domain, type, 0)) == -1) {
@@ -33,7 +33,7 @@ Socket::Socket(int domain, int type, int port, int backlog)
     }
     address.sin_family = domain;
     address.sin_port = htons(port);
-    address.sin_addr.s_addr = 0;
+    address.sin_addr.s_addr = interface;
     if (bind(sockfd, (struct sockaddr *)&address, sizeof address) == -1) {
         std::cout << "failed socket binding.. quitting.." << std::endl;
         _exit(EXIT_FAILURE);

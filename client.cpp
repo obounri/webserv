@@ -35,6 +35,15 @@ int main(int ac, char **av) {
                 }
                 else
                     std::cout << "Sending failed" << std::endl;
+                int rec;
+                char *buffer = new char[1024];
+                if ((rec = recv(sockfd, buffer, 1024, 0)) != -1) {
+                    std::cout << "received message of len " << rec << " content:" << std::endl;
+                    std::cout << buffer << std::endl << std::endl;
+                }
+                else
+                    std::cout << "reading failed.." << std::endl << std::endl;
+                delete buffer;
             }
             else
                 std::cout << "connection failed" << std::endl;
