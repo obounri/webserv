@@ -4,7 +4,7 @@
 // #include "./srcs/server/server.hpp"
 
 #define MYPORT 5000
-#define VIRTUAL_SERVERS 3
+#define V_SERVERS 3
 
 #include "srcs/parsers/parse_config.hpp"
 
