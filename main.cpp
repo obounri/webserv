@@ -19,33 +19,31 @@
 //     }
 // }
 
-int main(int ac , char **av) 
+int main(int ac , char **av) try
 {
-    try
-    {
-        if (ac == 2)
-            {
-                parse_config(av[1]);
-                    // handle signals  
-                    // parse config file
+    if (ac == 2)
+        {
+            parse_config(av[1]);
+                // handle signals  
+                // parse config file
 
-                    // init server
-                    // wait for connection
-            }
-            else
-                std::cerr << "Error : Invalid Parameter\n";
-                // signal(SIGINT, &shutdown);
-                // // Server server(AF_INET, SOCK_STREAM, MYPORT, 10);
-                // servers = new Server(AF_INET, SOCK_STREAM, MYPORT, 10);
-                // servers->run();
-            // }
-            // else
-            //     std::cout << "Provide config file" << std::endl;
-            
-            return 0;
-    }
-    catch (std::exception& e)
-    {
-        std::cerr << e.what() << std::endl;
-    }
+                // init server
+                // wait for connection
+        }
+        else
+            throw std::runtime_error("Error : Invalid parameter");
+            // signal(SIGINT, &shutdown);
+            // // Server server(AF_INET, SOCK_STREAM, MYPORT, 10);
+            // servers = new Server(AF_INET, SOCK_STREAM, MYPORT, 10);
+            // servers->run();
+        // }
+        // else
+        //     std::cout << "Provide config file" << std::endl;
+        
+        return 0;
+      
+}
+catch (std::exception& e)
+{
+    std::cerr << e.what() << std::endl;
 }
