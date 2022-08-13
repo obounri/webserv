@@ -21,21 +21,34 @@
 //                     return _error_msg.c_str();
 //                 }
 // };
+typedef	struct		s_state
+{
+	int				server;
+	int				left_brace;
+	int				right_brace;
+	int				listen;
+	int				server_name;
+	int				root;
+	int				index;
+
+}					t_state;
+
 typedef struct		s_parse
 {
-	std::ifstream	conf_file;
-	std::string		line;
-	int				server_stat;
-	int				location_stat;
+	std::ifstream				conf_file;
+	std::string					line;
+	std::vector<std::string>	tokens;
+	t_state						server_state;
+	int							location_stat;
 
 }					t_parse;
 
-typedef struct s_server
+typedef struct		s_server
 {
-	int port;
-	std::string root;
-	std::string host;
-}           v_server;
+	int				port;
+	std::string		root;
+	std::string		host;
+}					v_server;
 
 struct config
 {
@@ -45,14 +58,16 @@ struct config
 	// int interface = INADDR_ANY;
 	// int backlog;
 	// v_server    *vservers;
-
+	
 	int n_v_servers;
 	std::vector<v_server> vservers;
 };
 
+// SETION - Config File Parsing 
+
 void    parse_config(char *config_path);
 
-// Syntax Error
+// SECTION - Syntax Error
 std::string unexpected_token(std::string &name);
 std::string missing_close_brace(std::string &name);
 std::string missing_open_brace(std::string &name);
