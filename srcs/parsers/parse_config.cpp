@@ -1,40 +1,19 @@
-#include <arpa/inet.h>
-#include <iostream>
-#include <vector>
-
-using   namespace std;
-
-struct v_server
-{
-    int port;
-    std::string root;
-    // std::string ;
-};
-
-struct config
-{
-    /* data */
-    int domain = AF_INET;
-    int type = SOCK_STREAM;
-    int interface = INADDR_ANY;
-    int backlog;
-    int n_v_servers;
-    // v_server    *vservers;
-    vector<v_server> vservers;
-};
+#include "parse.hpp"
 
 config parse_config(/* char *config_path */) {
     config data;
     v_server tmp;
+    v_server tmp1;
+    v_server tmp2;
 
     data.backlog = 10;
     // for example 3 virtual servers;
     data.n_v_servers = 3;
     tmp.port = 1010;
     data.vservers.push_back(tmp);
-    tmp.port = 2020;
-    data.vservers.push_back(tmp);
-    tmp.port = 3030;
-    data.vservers.push_back(tmp);
+    tmp1.port = 2020;
+    data.vservers.push_back(tmp1);
+    tmp2.port = 3030;
+    data.vservers.push_back(tmp2);
     return data;
 }

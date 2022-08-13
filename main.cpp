@@ -2,7 +2,6 @@
 #include <signal.h>
 
 #include "srcs/server/server.hpp"
-#include "srcs/parsers/parse_config.cpp"
 
 #define MYPORT 5000
 #define V_SERVERS 3
@@ -29,7 +28,7 @@ int main() {
 
         // check if recv/send return is <= 0 close fd
         data = parse_config(/* char *config_path */);
-        server = new Server(data.domain, data.type, data.interface, MYPORT, 10);
+        server = new Server(data);
         signal(SIGINT, &shutdown);
         server->run();
     // }

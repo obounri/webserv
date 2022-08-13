@@ -14,10 +14,15 @@ private:
     struct sockaddr_in address;
 
 public:
+    // Socket();
     Socket(int domain, int type, int interface, int port, int backlog);
     unsigned int get_socket() { return sockfd; };
     ~Socket();
 };
+
+// Socket::Socket() {
+    
+// }
 
 Socket::Socket(int domain, int type, int interface, int port, int backlog)
 {
@@ -43,7 +48,7 @@ Socket::Socket(int domain, int type, int interface, int port, int backlog)
         _exit(EXIT_FAILURE);
     }
     fcntl(sockfd, F_SETFL, O_NONBLOCK);
-    std::cout << "socket listening.." << std::endl;
+    std::cout << "socket " << sockfd << " listening.." << std::endl;
 }
 
 Socket::~Socket()

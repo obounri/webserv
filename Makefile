@@ -7,7 +7,8 @@ HEADER = srcs/server/server.hpp \
 
 NAME = webserv
 NAME_CLIENT = client
-SRC_FILE =  main.cpp
+SRC_FILE =  main.cpp \
+	srcs/parsers/parse_config.cpp
 CLIENT = client.cpp
 # OBJ_FILE = $(SRC_FILE:.cpp=.o)
 

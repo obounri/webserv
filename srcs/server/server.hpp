@@ -2,9 +2,8 @@
 # define SERVER_HPP
 
 #include "../sockets/sockets.hpp"
-#include <iostream>
+#include "../parsers/parse.hpp"
 #include "/usr/include/kqueue/sys/event.h"
-#include <vector>
 
 #define MAX_REQUEST_SIZE 1024
 #define DUMMY_HTTP_RESPONSE "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!"
@@ -16,47 +15,62 @@
 
 // };
 
-
 class Server
 {
     private:
         /* data */
-        Socket * listener; // listener socket(s)
+        std::vector<Socket *> listeners;
         int      keq;
+        int      n_v_servers;
 
-        // void    poll_connections();
-        void    accept_new_connection();
+        void    accept_new_connection(unsigned long int fd);
         void    destroy_connection(int fd, int event);
         void    handle_request(int fd);
         void    send_request(int fd);
+        int     is_listener(unsigned long int fd);
         // void    receiver();
         // void    sender();
     public:
-        Server(int domain, int type, int interface, int port, int backlog);
+        Server(config data);
         ~Server();
 
         void            run();
 };
 
-Server::Server(int domain, int type, int interface, int port, int backlog)
+Server::Server(config data)
 {
     struct kevent evSet;
 
     std::cout << "constructing server.." << std::endl;
-    listener = new Socket(domain, type, interface, port, backlog);
     keq = kqueue();
-    EV_SET(&evSet, listener->get_socket(), EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-    kevent(keq, &evSet, 1, NULL, 0, NULL);
+    for (int i = 0; i < data.n_v_servers; i++) {
+        listeners.push_back(new Socket(data.domain, data.type, data.interface, data.vservers[i].port, data.backlog));
+        EV_SET(&evSet, listeners[i]->get_socket(), EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+        kevent(keq, &evSet, 1, NULL, 0, NULL);
+    }
+    n_v_servers = data.n_v_servers;
+}
+
+int     Server::is_listener(unsigned long int fd)
+{
+    for (int i = 0; i < n_v_servers; i++)
+    {
+        if (listeners[i]->get_socket() == fd)
+            return (1);
+    }
+    return (0);
 }
 
 Server::~Server()
 {
     std::cout << "server destructor called.." << std::endl;
     close(keq);
-    delete listener;
+    for (int i = 0; i < n_v_servers; i++)
+        delete listeners[i];
+    std::cout << std::endl << "server shut down, take care :).." << std::endl;
 }
 
-void    Server::accept_new_connection() 
+void    Server::accept_new_connection(unsigned long int fd) 
 {
     struct kevent evSet;
     int newfd;
@@ -64,7 +78,7 @@ void    Server::accept_new_connection()
     socklen_t   addr_size;
     addr_size = sizeof their_addr;
 
-    newfd = accept(listener->get_socket(), (sockaddr *)&their_addr, &addr_size);
+    newfd = accept(fd, (sockaddr *)&their_addr, &addr_size);
     EV_SET(&evSet, newfd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
     kevent(keq, &evSet, 1, NULL, 0, NULL);
     std::cout << "got connection request from fd = " << newfd << ".." << std::endl;
@@ -76,7 +90,7 @@ void    Server::destroy_connection(int fd, int event)
 {
     struct kevent evSet;
 
-    std::cout << "client " << fd << " disconnected.." << std::endl;
+    std::cout << "client " << fd << " disconnected.." << std::endl << std::endl;
     EV_SET(&evSet, fd, event, EV_DELETE, 0, 0, NULL);
     kevent(keq, &evSet, 1, NULL, 0, NULL);
     close(fd);
@@ -112,7 +126,7 @@ void    Server::send_request(int fd)
 
     std::cout << ">> fd " << fd << " is ready for writing" << std::endl;
     if ((sent = send(fd, DUMMY_HTTP_RESPONSE, sizeof DUMMY_HTTP_RESPONSE, 0)) != -1) {
-        std::cout << "message sent = " << sent << std::endl;
+        std::cout << "message sent = " << sent << std::endl << std::endl;;
     }
     else {
         std::cout << "sending failed.." << std::endl << std::endl;
@@ -129,13 +143,13 @@ void    Server::send_request(int fd)
 void Server::run() {
     struct kevent evList[32];
 
-    std::cout << "server up and running.." << std::endl;
+    std::cout << "server up and running.." << std::endl << std::endl;
     for(;;) {
         int num_events = kevent(keq, NULL, 0, evList, 32, NULL);
         for (int i = 0; i < num_events; i++)
         {
-            if (evList[i].ident == listener->get_socket())
-                accept_new_connection();
+            if (is_listener(evList[i].ident))
+                accept_new_connection(evList[i].ident);
             else if (evList[i].flags & EV_EOF)
                 destroy_connection(evList[i].ident, EVFILT_READ);
             else if (evList[i].filter == EVFILT_READ)
