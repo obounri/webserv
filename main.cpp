@@ -21,12 +21,13 @@ void shutdown(int signal) {
 int main() {
 
     // if (ac == 2) {
-            // handle signals  
+            // handle signals
             // parse config file
             // init server
             // wait for connection
         config data;
-    
+
+        // check if recv/send return is <= 0 close fd
         data = parse_config(/* char *config_path */);
         server = new Server(data.domain, data.type, data.interface, MYPORT, 10);
         signal(SIGINT, &shutdown);

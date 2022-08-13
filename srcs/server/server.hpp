@@ -4,6 +4,7 @@
 #include "../sockets/sockets.hpp"
 #include <iostream>
 #include "/usr/include/kqueue/sys/event.h"
+#include <vector>
 
 #define MAX_REQUEST_SIZE 1024
 #define DUMMY_HTTP_RESPONSE "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!"
@@ -25,7 +26,7 @@ class Server
 
         // void    poll_connections();
         void    accept_new_connection();
-        void    destroy_connection(int fd);
+        void    destroy_connection(int fd, int event);
         void    handle_request(int fd);
         void    send_request(int fd);
         // void    receiver();
@@ -44,13 +45,14 @@ Server::Server(int domain, int type, int interface, int port, int backlog)
     std::cout << "constructing server.." << std::endl;
     listener = new Socket(domain, type, interface, port, backlog);
     keq = kqueue();
-    EV_SET(&evSet, listener->get_socket(), EVFILT_READ, EV_ADD, 0, 0, NULL);
+    EV_SET(&evSet, listener->get_socket(), EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
     kevent(keq, &evSet, 1, NULL, 0, NULL);
 }
 
 Server::~Server()
 {
     std::cout << "server destructor called.." << std::endl;
+    close(keq);
     delete listener;
 }
 
@@ -63,20 +65,19 @@ void    Server::accept_new_connection()
     addr_size = sizeof their_addr;
 
     newfd = accept(listener->get_socket(), (sockaddr *)&their_addr, &addr_size);
-    // evSet = new struct kevent[2];
-    EV_SET(&evSet, newfd, EVFILT_READ, EV_ADD, 0, 0, NULL);
+    EV_SET(&evSet, newfd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
     kevent(keq, &evSet, 1, NULL, 0, NULL);
     std::cout << "got connection request from fd = " << newfd << ".." << std::endl;
     std::cout << inet_ntoa(their_addr.sin_addr) << std::endl;
     std::cout << ntohs(their_addr.sin_port) << std::endl << std::endl;
 }
 
-void    Server::destroy_connection(int fd)
+void    Server::destroy_connection(int fd, int event)
 {
     struct kevent evSet;
 
     std::cout << "client " << fd << " disconnected.." << std::endl;
-    EV_SET(&evSet, fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+    EV_SET(&evSet, fd, event, EV_DELETE, 0, 0, NULL);
     kevent(keq, &evSet, 1, NULL, 0, NULL);
     close(fd);
 }
@@ -87,16 +88,20 @@ void    Server::handle_request(int fd)
     struct kevent evSet;
 
     char *buffer = new char[MAX_REQUEST_SIZE];
-    if ((rec = recv(fd, buffer, MAX_REQUEST_SIZE, 0)) != -1) {
+    if ((rec = recv(fd, buffer, MAX_REQUEST_SIZE, 0)) > 0) {
         std::cout << "received message of len " << rec << " content:" << std::endl;
         std::cout << buffer << std::endl << std::endl;
+        delete buffer;
     }
-    else
+    else {
         std::cout << "reading failed.." << std::endl << std::endl;
-    delete buffer;
+        destroy_connection(fd, EVFILT_READ);
+        delete buffer;
+        return ;
+    }
     EV_SET(&evSet, fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
     kevent(keq, &evSet, 1, NULL, 0, NULL);
-    EV_SET(&evSet, fd, EVFILT_WRITE, EV_ADD, 0, 0, NULL);
+    EV_SET(&evSet, fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
     kevent(keq, &evSet, 1, NULL, 0, NULL);
 }
 
@@ -109,11 +114,16 @@ void    Server::send_request(int fd)
     if ((sent = send(fd, DUMMY_HTTP_RESPONSE, sizeof DUMMY_HTTP_RESPONSE, 0)) != -1) {
         std::cout << "message sent = " << sent << std::endl;
     }
-    else
-        std::cout << "sending failed.." << std::endl;
+    else {
+        std::cout << "sending failed.." << std::endl << std::endl;
+        destroy_connection(fd, EVFILT_WRITE);
+        return ;
+    }
     EV_SET(&evSet, fd, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
     kevent(keq, &evSet, 1, NULL, 0, NULL);
-    close(fd);
+    EV_SET(&evSet, fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+    kevent(keq, &evSet, 1, NULL, 0, NULL);
+    // close(fd);
 }
 
 void Server::run() {
@@ -127,7 +137,7 @@ void Server::run() {
             if (evList[i].ident == listener->get_socket())
                 accept_new_connection();
             else if (evList[i].flags & EV_EOF)
-                destroy_connection(evList[i].ident);
+                destroy_connection(evList[i].ident, EVFILT_READ);
             else if (evList[i].filter == EVFILT_READ)
                 handle_request(evList[i].ident);
             else if (evList[i].filter == EVFILT_WRITE)
