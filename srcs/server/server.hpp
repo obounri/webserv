@@ -21,10 +21,10 @@ class Server
 {
     private:
         /* data */
-        std::vector<Socket *> listeners;
-        int      keq;
-        int      n_v_servers;
-        std::vector<client> clients;
+        std::vector<Socket *>   listeners;
+        std::vector<client>     clients;
+        int                     keq;
+        int                     n_v_servers;
 
         void    accept_new_connection(unsigned long int fd);
         void    destroy_connection(int fd, int event);
