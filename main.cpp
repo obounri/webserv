@@ -26,7 +26,7 @@ int main() {
             // wait for connection
         config data;
 
-        // check if recv/send return is <= 0 close fd
+        // wait for message to finish before sending response
         data = parse_config(/* char *config_path */);
         server = new Server(data);
         signal(SIGINT, &shutdown);

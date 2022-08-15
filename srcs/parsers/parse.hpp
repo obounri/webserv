@@ -15,9 +15,9 @@ typedef struct s_v_server
 typedef struct s_config
 {
     /* data */
-    int domain = AF_INET;
-    int type = SOCK_STREAM;
-    int interface = INADDR_ANY;
+    static const int domain = AF_INET;
+    static const int type = SOCK_STREAM;
+    static const int interface = INADDR_ANY;
     int backlog;
     int n_v_servers;
     // v_server    *vservers;

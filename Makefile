@@ -1,14 +1,19 @@
 CC = c++
 
-CFLAGS = -no-pie -Wall -Wextra -Werror -std=c++98
+# CFLAGS = -no-pie -Wall -Wextra -Werror -std=c++98
+CFLAGS = -Wall -Wextra -Werror -std=c++98
 
 HEADER = srcs/server/server.hpp \
-		srcs/sockets/sockets.hpp
+		srcs/sockets/sockets.hpp \
+		srcs/parsers/parse.hpp
 
 NAME = webserv
 NAME_CLIENT = client
 SRC_FILE =  main.cpp \
-	srcs/parsers/parse_config.cpp
+	srcs/server/server.cpp \
+	srcs/parsers/parse_config.cpp \
+	srcs/sockets/sockets.cpp
+
 CLIENT = client.cpp
 # OBJ_FILE = $(SRC_FILE:.cpp=.o)
 
@@ -18,7 +23,8 @@ all : $(NAME)
 # 	$(CC) $(CFLAGS)  -c $< -o $@
 
 $(NAME) : $(SRC_FILE) $(CLIENT) $(HEADER)
-	@$(CC) $(CFLAGS) $(SRC_FILE) -lkqueue -lpthread -o $(NAME)
+# 	@$(CC) $(CFLAGS) $(SRC_FILE) -lkqueue -lpthread -o $(NAME)
+	@$(CC) $(CFLAGS) $(SRC_FILE) -o $(NAME)
 	@$(CC) $(CFLAGS) $(CLIENT) -o $(NAME_CLIENT)
 
 clean :
