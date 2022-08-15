@@ -1,39 +1,39 @@
 #include <iostream>
 #include <signal.h>
-
 #include "srcs/server/server.hpp"
-
-#define MYPORT 5000
-#define V_SERVERS 3
-
-Server * server;
 
 void shutdown(int signal) {
     if (signal == SIGINT) {
         std::cout << " received SIGINT.." << std::endl;
-        std::cout << "shutting server down.." << std::endl;
-        delete server;
-        _exit(0);
     }
 }
 
 int main() {
 
-    // if (ac == 2) {
-            // handle signals
-            // parse config file
-            // init server
-            // wait for connection
-        config data;
+    try
+    {
+        // if (ac == 2) {
+                // handle signals
+                // parse config file
+                // init server
+                // wait for connection
+            config data;
 
-        // wait for message to finish before sending response
-        data = parse_config(/* char *config_path */);
-        server = new Server(data);
-        signal(SIGINT, &shutdown);
-        server->run();
-    // }
-    // else
-    //     std::cout << "Provide config file" << std::endl;
+            // wait for message to finish before sending response
+            data = parse_config(/* char *config_path */);
+            Server server(data);
+
+            signal(SIGINT, &shutdown);
+            server.run();
+        // }
+        // else
+        //     throw std::runtime_error("Provide config file..");
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
+    
     
     return 0;
 }

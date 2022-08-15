@@ -5,7 +5,8 @@ Server::Server(config data)
     struct kevent evSet;
 
     std::cout << "constructing server.." << std::endl;
-    keq = kqueue();
+    if ((keq = kqueue()) == -1)
+        throw std::runtime_error("kqueue failed..");
     for (int i = 0; i < data.n_v_servers; i++) {
         listeners.push_back(new Socket(data.domain, data.type, data.interface, data.vservers[i].port, data.backlog));
         EV_SET(&evSet, listeners[i]->get_socket(), EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
@@ -16,10 +17,8 @@ Server::Server(config data)
 int     Server::is_listener(unsigned long int fd)
 {
     for (unsigned int i = 0; i < listeners.size(); i++)
-    {
         if (listeners[i]->get_socket() == fd)
             return (1);
-    }
     return (0);
 }
 
@@ -108,14 +107,15 @@ void    Server::send_request(client *c)
 
 void Server::run() {
     struct kevent evList[32];
+    int num_events;
 
     std::cout << "server up and running.." << std::endl << std::endl;
     for(;;) {
         std::cout << "waiting for events.." << std::endl;
-        int num_events = kevent(keq, NULL, 0, evList, 32, NULL);
+        if ((num_events = kevent(keq, NULL, 0, evList, 32, NULL)) == -1)
+            throw std::runtime_error("kevent failed..");
         std::cout << "catched " << num_events << " event(s).." << std::endl;
-        for (int i = 0; i < num_events; i++)
-        {
+        for (int i = 0; i < num_events; i++) {
             if (is_listener(evList[i].ident))
                 accept_new_connection(evList[i].ident);
             else if (evList[i].flags & EV_EOF)

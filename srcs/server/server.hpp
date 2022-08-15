@@ -3,6 +3,8 @@
 
 #include "../sockets/sockets.hpp"
 #include "../parsers/parse.hpp"
+#include <exception>
+
 #if 1
     #include <sys/event.h>
 #else
