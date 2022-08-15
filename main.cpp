@@ -10,8 +10,7 @@ void shutdown(int signal) {
 
 int main() {
 
-    try
-    {
+    try {
         // if (ac == 2) {
                 // handle signals
                 // parse config file
@@ -29,8 +28,7 @@ int main() {
         // else
         //     throw std::runtime_error("Provide config file..");
     }
-    catch(const std::exception& e)
-    {
+    catch(const std::exception& e) {
         std::cerr << e.what() << '\n';
     }
     
