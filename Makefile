@@ -8,6 +8,8 @@ NAME = webserv
 NAME_CLIENT = client
 SRC_FILE =  main.cpp \
 			srcs/parsers/parse_config.cpp \
+			srcs/parsers/server_block.cpp \
+			srcs/parsers/utils.cpp \
 			srcs/parsers/Syntax_errors.cpp
 CLIENT = client.cpp
 # OBJ_FILE = $(SRC_FILE:.cpp=.o)
