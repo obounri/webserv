@@ -43,7 +43,7 @@ int main(int ac, char **av) {
                 }
                 else
                     std::cout << "reading failed.." << std::endl << std::endl;
-                delete buffer;
+                delete [] buffer;
             }
             else
                 std::cout << "connection failed" << std::endl;

@@ -3,7 +3,8 @@
 
 #include "../sockets/sockets.hpp"
 #include <iostream>
-#include "/usr/include/kqueue/sys/event.h"
+#include <sys/event.h>
+// #include "/usr/include/kqueue/sys/event.h"
 #include <vector>
 
 #define MAX_REQUEST_SIZE 1024
@@ -91,12 +92,12 @@ void    Server::handle_request(int fd)
     if ((rec = recv(fd, buffer, MAX_REQUEST_SIZE, 0)) > 0) {
         std::cout << "received message of len " << rec << " content:" << std::endl;
         std::cout << buffer << std::endl << std::endl;
-        delete buffer;
+        delete [] buffer;
     }
     else {
         std::cout << "reading failed.." << std::endl << std::endl;
         destroy_connection(fd, EVFILT_READ);
-        delete buffer;
+        delete [] buffer;
         return ;
     }
     EV_SET(&evSet, fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
