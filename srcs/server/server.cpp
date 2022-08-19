@@ -66,10 +66,9 @@ void    Server::handle_request(client *c)
 
     std::cout << "handle_request" << std::endl;
     bzero(c->recBuffer, MAX_RECV_SIZE);
-    std::cout << "from fd = " << c->fd << " and ip = " << c->ip << " and port = " << c->port << std::endl;
     if ((c->rec = recv(c->fd, c->recBuffer, MAX_RECV_SIZE - 1, 0)) > 0) {
         std::cout << "received message of len " << c->rec << " content:" << std::endl;
-        std::cout << c->recBuffer << std::endl << std::endl;
+        // std::cout << c->recBuffer << std::endl << std::endl;
         c->req.append(c->recBuffer);
     }
     else {
@@ -77,11 +76,13 @@ void    Server::handle_request(client *c)
         destroy_connection(c->fd, EVFILT_READ);
         return ;
     }
-    
-    EV_SET(&evSet, c->fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
-    kevent(keq, &evSet, 1, NULL, 0, NULL);
-    EV_SET(&evSet, c->fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, c);
-    kevent(keq, &evSet, 1, NULL, 0, NULL);
+    if (c->req.find("\r\n\r\n") != std::string::npos) {
+        std::cout << "completed request from fd " << c->fd << std::endl << c->req << std::endl;
+        EV_SET(&evSet, c->fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+        kevent(keq, &evSet, 1, NULL, 0, NULL);
+        EV_SET(&evSet, c->fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, c);
+        kevent(keq, &evSet, 1, NULL, 0, NULL);
+    }
 }
 
 void    Server::send_request(client *c)
