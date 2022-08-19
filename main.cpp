@@ -28,8 +28,7 @@ int main() {
         // else
         //     throw std::runtime_error("Provide config file..");
     }
-    catch(const std::exception& e)
-    {
+    catch(const std::exception& e) {
         std::cerr << e.what() << '\n';
     }
     

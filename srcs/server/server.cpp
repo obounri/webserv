@@ -61,23 +61,23 @@ void    Server::destroy_connection(int fd, int event)
 
 void    Server::handle_request(client *c)
 {
-    int rec;
+    // int rec;
     struct kevent evSet;
 
     std::cout << "handle_request" << std::endl;
-    char* buffer = new char[2];
+    bzero(c->recBuffer, MAX_RECV_SIZE);
     std::cout << "from fd = " << c->fd << " and ip = " << c->ip << " and port = " << c->port << std::endl;
-    if ((rec = recv(c->fd, buffer, 2, 0)) > 0) {
-        std::cout << "received message of len " << rec << " content:" << std::endl;
-        std::cout << buffer << std::endl << std::endl;
-        delete [] buffer;
+    if ((c->rec = recv(c->fd, c->recBuffer, MAX_RECV_SIZE - 1, 0)) > 0) {
+        std::cout << "received message of len " << c->rec << " content:" << std::endl;
+        std::cout << c->recBuffer << std::endl << std::endl;
+        c->req.append(c->recBuffer);
     }
     else {
         std::cout << "reading failed.." << std::endl << std::endl;
         destroy_connection(c->fd, EVFILT_READ);
-        delete [] buffer;
         return ;
     }
+    
     EV_SET(&evSet, c->fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
     kevent(keq, &evSet, 1, NULL, 0, NULL);
     EV_SET(&evSet, c->fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, c);
