@@ -7,7 +7,7 @@
 #include <string>
 #include <stdlib.h>
 
-#define DUMMY_HTTP_REQUEST "GET / HTTP/1.1\r\nHost: localhost:PORT\r\n\r\n"
+#define DUMMY_HTTP_REQUEST "GET / HTTP/1.1\r\nHost: localhost:PORT\r\nContent-Length: 12\r\n\r\nHello world!\r\n\r\n"
 
 int main(int ac, char **av) {
 

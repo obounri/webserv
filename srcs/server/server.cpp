@@ -61,14 +61,14 @@ void    Server::destroy_connection(int fd, int event)
 
 void    Server::handle_request(client *c)
 {
-    // int rec;
+    size_t pos;
     struct kevent evSet;
+    std::string tmp;
 
     std::cout << "handle_request" << std::endl;
     bzero(c->recBuffer, MAX_RECV_SIZE);
     if ((c->rec = recv(c->fd, c->recBuffer, MAX_RECV_SIZE - 1, 0)) > 0) {
-        std::cout << "received message of len " << c->rec << " content:" << std::endl;
-        // std::cout << c->recBuffer << std::endl << std::endl;
+        std::cout << "received message of len " << c->rec << "from fd " << c->fd << "\ncontent\n" << "|" << c->recBuffer << "|" << std::endl;
         c->req.append(c->recBuffer);
     }
     else {
@@ -76,8 +76,25 @@ void    Server::handle_request(client *c)
         destroy_connection(c->fd, EVFILT_READ);
         return ;
     }
-    if (c->req.find("\r\n\r\n") != std::string::npos) {
-        std::cout << "completed request from fd " << c->fd << std::endl << c->req << std::endl;
+    if ((pos = c->req.find("\r\n\r\n")) != std::string::npos) {
+        if (c->header.empty()) {
+            c->header = c->req.substr(0, pos);
+            c->req.erase(0, pos + 4);
+            c->body_len = 0;
+            if ((pos = c->header.find("Content-Length: ")) != std::string::npos) {
+				tmp = c->header;
+				tmp.erase(0, pos + 16);
+				c->body_len = stoi(tmp.substr(0, tmp.find("\r\n")));
+			}
+        }
+    }
+    std::cout << "is empty? " << c->header.empty() << " body_len " << c->body_len << " req len " << c->req.length() << std::endl;
+    // std::cout << c->header << std::endl << std::endl;
+    // std::cout << c->req << std::endl;
+    if (!c->header.empty() && (c->body_len) == c->req.length()) {
+        std::cout << "completed request from fd " << c->fd << std::endl << "HEADER:\n" << c->header << std::endl << "BODY\n" << c->req << std::endl;
+        c->req.clear();
+        c->header.clear();
         EV_SET(&evSet, c->fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
         kevent(keq, &evSet, 1, NULL, 0, NULL);
         EV_SET(&evSet, c->fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, c);
