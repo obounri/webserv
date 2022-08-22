@@ -65,11 +65,10 @@ void    Server::handle_request(client *c)
     struct kevent evSet;
     std::string tmp;
 
-    std::cout << "handle_request" << std::endl;
     bzero(c->recBuffer, MAX_RECV_SIZE);
     if ((c->rec = recv(c->fd, c->recBuffer, MAX_RECV_SIZE - 1, 0)) > 0) {
-        std::cout << "received message of len " << c->rec << "from fd " << c->fd << "\ncontent\n" << "|" << c->recBuffer << "|" << std::endl;
         c->req.append(c->recBuffer);
+        std::cout << " << " << c->rec;
     }
     else {
         std::cout << "reading failed.." << std::endl << std::endl;
@@ -88,11 +87,8 @@ void    Server::handle_request(client *c)
 			}
         }
     }
-    std::cout << "is empty? " << c->header.empty() << " body_len " << c->body_len << " req len " << c->req.length() << std::endl;
-    // std::cout << c->header << std::endl << std::endl;
-    // std::cout << c->req << std::endl;
     if (!c->header.empty() && (c->body_len) == c->req.length()) {
-        std::cout << "completed request from fd " << c->fd << std::endl << "HEADER:\n" << c->header << std::endl << "BODY\n" << c->req << std::endl;
+        std::cout << "\ncompleted request from fd " << c->fd << std::endl << "HEADER:\n" << c->header << std::endl << "BODY\n" << c->req << std::endl;
         c->req.clear();
         c->header.clear();
         EV_SET(&evSet, c->fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
@@ -107,7 +103,6 @@ void    Server::send_request(client *c)
     int sent;
     struct kevent evSet;
 
-    std::cout << "send_request" << std::endl;
     std::cout << ">> fd " << c->fd << " is ready for writing" << std::endl;
     if ((sent = send(c->fd, DUMMY_HTTP_RESPONSE, sizeof DUMMY_HTTP_RESPONSE, 0)) != -1) {
         std::cout << "message sent = " << sent << std::endl << std::endl;;
@@ -129,10 +124,10 @@ void Server::run() {
 
     std::cout << "server up and running.." << std::endl << std::endl;
     for(;;) {
-        std::cout << "waiting for events.." << std::endl;
+        // std::cout << "waiting for events.." << std::endl;
         if ((num_events = kevent(keq, NULL, 0, evList, 32, NULL)) == -1)
-            throw std::runtime_error("kevent failed..");
-        std::cout << "catched " << num_events << " event(s).." << std::endl;
+            throw std::runtime_error("");
+        // std::cout << "catched " << num_events << " event(s).." << std::endl;
         for (int i = 0; i < num_events; i++) {
             if (is_listener(evList[i].ident))
                 accept_new_connection(evList[i].ident);

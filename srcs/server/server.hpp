@@ -12,7 +12,7 @@
 #endif
     
 
-#define MAX_RECV_SIZE 5
+#define MAX_RECV_SIZE 1024
 #define DUMMY_HTTP_RESPONSE "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 12\r\n\r\nHello world!\r\n\r\n"
 
 typedef struct s_client
@@ -21,7 +21,7 @@ typedef struct s_client
     int         port;
     std::string ip;
 
-    char        recBuffer[1024];
+    char        recBuffer[MAX_RECV_SIZE];
     std::string header;
     std::string req;
     int         rec;
