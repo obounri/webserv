@@ -1,62 +1,54 @@
 #include "parse_config.hpp"
 
-// int	is_numbers(std::string &str)
-// {
-// 	size_t i = 0;
-// 	while (i < str.size())
-// 	{
-// 		if (str[i] == ';' && i + 1 == (str.size() - 1))
-// 			return 2;
-// 		else if (!std::isdigit(str[i]))
-// 			return 0;
-// 		i++;
-// 	}
-// 	return 1;
-// }
+// first if { not exist after server throw missing 
+// if { not exist after location throw missing
+// if location not inside server throw unexpected token
+// if location inside location throw unexpected
+// if any other directive after location throw location should the last directive
+// 
 
 void	left_brace(t_parse &vars , size_t &pos)
 {
-	if (vars.server_state.server == 2)
+	if ((vars.server_state.server == 2 && !vars.server_state.location) || vars.server_state.location == 2 )
 		throw std::runtime_error(duplicate_key(vars.tokens[pos]));
 
-	while (pos < vars.tokens.size())
+	if (vars.server_state.server == 1)
 	{
-		if (vars.tokens[pos].empty())
-		{
-			pos++;
-			continue;
-		}
-		if (vars.tokens[pos][0] != '{')
-			throw std::runtime_error(missing_open_brace(vars.tokens[pos]));
-		else if (vars.tokens[pos][0] == '{' && vars.tokens[pos][1])
+		if (vars.tokens[pos][0] == '{' && vars.tokens[pos][1])
 			throw std::runtime_error(unexpected_token(vars.tokens[pos]));
-		else
+		else if (!vars.tokens[pos].compare("{"))
 		{
 			vars.server_state.server = 2;
-			vars.server_state.left_brace = 1;
 			pos++;
-			break;
+			std::cout << "server is on\n";
 		}
+		else
+			throw std::runtime_error(missing_open_brace("server"));
+	}
+	else if (vars.server_state.location == 1)
+	{
+		if (vars.tokens[pos][0] == '{' && vars.tokens[pos][1])
+			throw std::runtime_error(unexpected_token(vars.tokens[pos]));
+		else if (!vars.tokens[pos].compare("{"))
+		{
+			vars.server_state.location = 2;
 			pos++;
+		}
+		else
+			throw std::runtime_error(missing_open_brace("location"));
 	}
 }
+
+// void	right_brace(t_parse &vars, size_t &pos)
+// {
+
+// }
 
 void	set_port(t_parse &vars, std::string &str)
 {
 		vars.tmp_server.port = std::stoi(str, nullptr, 10);
 		if (vars.tmp_server.port < 0 || vars.tmp_server.port > 65536)
 			throw std::runtime_error(Syntax_error("listen port out of range"));
-		vars.server_state.listen = 2;
-}
-
-int		semicolon_check(t_parse &vars, size_t &pos)
-{
-	size_t found = vars.tokens[pos].find(";");
-    if (found != std::string::npos && found == vars.tokens[pos].length() - 1)
-		return 1;
-	else if (!vars.tokens[pos + 1].empty() && !vars.tokens[pos + 1].compare(";"))
-        return 2;
-    return 0;
 }
 
 void     check_set_port(t_parse &vars, size_t &pos)
@@ -65,7 +57,9 @@ void     check_set_port(t_parse &vars, size_t &pos)
 	if (found == 0 || vars.server_state.listen == 2)
 		throw std::runtime_error(Syntax_error(vars.line));
     else if (found == 1)
-    {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+    {              
+		if ((vars.tokens.size() - pos) != 1)
+			throw std::runtime_error(Invalid_arguments(vars.line));                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
 		std::vector<std::string> t_vec = split_line(vars.tokens[pos], ";");
 		if (!t_vec.empty())
 		{
@@ -78,6 +72,8 @@ void     check_set_port(t_parse &vars, size_t &pos)
 	}
 	else if (found == 2)
 	{
+		if ((vars.tokens.size() - pos) != 2)
+			throw std::runtime_error(Invalid_arguments(vars.line));
 		if (!IsNumber(vars.tokens[pos]))
 			throw std::runtime_error(unexpected_token(vars.tokens[pos]));
 		set_port(vars, vars.tokens[pos]);
@@ -93,15 +89,9 @@ void	listen(t_parse &vars, size_t &pos)
 		vars.server_state.listen = 1;
 		pos++;
 	}
-	while (pos < vars.tokens.size())
-	{
-		// if (!vars.tokens[pos].compare("listen"))
-		// 	throw std::runtime_error(duplicate_key(vars.tokens[pos]));
-		// else
 		check_set_port(vars, pos);
-	}
-		if (vars.server_state.listen == 1)
-			throw std::runtime_error(Syntax_error(vars.line));
+		// if (vars.server_state.listen == 1)
+		// 	throw std::runtime_error(Syntax_error(vars.line));
 }
 
 void	check_set_ip(t_parse &vars, size_t &pos)
@@ -111,6 +101,8 @@ void	check_set_ip(t_parse &vars, size_t &pos)
 		throw std::runtime_error(Syntax_error(vars.line));
 	else if (found == 1)
 	{
+		if ((vars.tokens.size() - pos) != 1)
+			throw std::runtime_error(Invalid_arguments(vars.line));
 		std::vector<std::string> t_vec = split_line(vars.tokens[pos], ";");
 		if (!t_vec.empty())
 		{
@@ -123,6 +115,8 @@ void	check_set_ip(t_parse &vars, size_t &pos)
 	}
 	else if (found == 2)
 	{
+		if ((vars.tokens.size() - pos) != 2 )
+			throw std::runtime_error(Invalid_arguments(vars.line));
 		if (!Is_IP_Adress(vars.tokens[pos]))
 			throw std::runtime_error(unexpected_token(vars.tokens[pos]));
 		vars.tmp_server.host = vars.tokens[pos];
@@ -146,11 +140,13 @@ void	host(t_parse &vars, size_t &pos)
 
 void	check_set_server_name(t_parse &vars, size_t &pos)
 {
-	size_t found = semicolon_check(vars, pos);
+	int found = semicolon_check(vars, pos);
 	if (found == 0 || vars.server_state.server_name == 2)
 		throw std::runtime_error(Syntax_error(vars.line));
 	else if (found == 1)
 	{
+		if ((vars.tokens.size() - pos) != 1)
+			throw std::runtime_error(Invalid_arguments(vars.line));
 		std::vector<std::string> t_vec = split_line(vars.tokens[pos], ";");
 		if (!t_vec.empty())
 		{
@@ -161,9 +157,11 @@ void	check_set_server_name(t_parse &vars, size_t &pos)
 	}
 	else if (found == 2)
 	{
+		if ((vars.tokens.size() - pos) != 2)
+			throw std::runtime_error(Invalid_arguments(vars.line));
 			vars.tmp_server.server_name = vars.tokens[pos];
 			vars.server_state.server_name = 2;
-			pos++;
+			pos = pos + 2;
 	}
 }
 
@@ -174,29 +172,47 @@ void	server_name(t_parse &vars, size_t &pos)
 		vars.server_state.server_name = 1;
 		pos++;
 	}
-	while (pos < vars.tokens.size())
+	// while (pos < vars.tokens.size())
 		check_set_server_name(vars, pos);
-	if (vars.server_state.host == 1)
+	if (vars.server_state.server_name == 1)
 		throw std::runtime_error(Syntax_error(vars.line));
+}
+
+void	set_client_max_body_size(t_parse &vars, std::string &str)
+{
+	vars.tmp_server.client_max_body_size = std::stoi(str);
+	if (vars.tmp_server.client_max_body_size <= 0)
+		throw std::runtime_error("Invalid client max body size : " + str);
 }
 
 void	check_set_client_max_body_size(t_parse &vars, size_t &pos)
 {
-	size_t found = semicolon_check(vars, pos);
+	int found = semicolon_check(vars, pos);
 	if (found == 0 || vars.server_state.client_max_body_size == 2)
 		throw std::runtime_error(Syntax_error(vars.line));
 	if (found == 1)
 	{
+		if ((vars.tokens.size() - pos) != 1)
+			throw std::runtime_error(Invalid_arguments(vars.line));
 		std::vector<std::string> t_vec = split_line(vars.tokens[pos], ";");
 		if (!t_vec.empty())
 		{
 			if (!IsNumber(t_vec[0]))
 				throw std::runtime_error(unexpected_token(vars.tokens[pos]));
-				// in progress ...
-			// set_client_max_body_size();
+			set_client_max_body_size(vars, t_vec[0]);
 			vars.server_state.client_max_body_size = 2;
 			pos++;
 		}
+	}
+	else if (found == 2)
+	{
+		if ((vars.tokens.size() - pos) != 2)
+			throw std::runtime_error(Invalid_arguments(vars.line));
+		if (!IsNumber(vars.tokens[pos]))
+			throw std::runtime_error(Syntax_error(vars.line));
+		set_client_max_body_size(vars, vars.tokens[pos]);
+		vars.server_state.client_max_body_size = 2;
+		pos = pos + 2;
 	}
 }
 
@@ -207,17 +223,168 @@ void	client_max_body_size(t_parse &vars, size_t &pos)
 		vars.server_state.client_max_body_size = 1;
 		pos++;
 	}
-	while (pos < vars.tokens.size())
-		std::cout << "enter client function\n";
+	// while (pos < vars.tokens.size())
+		check_set_client_max_body_size(vars, pos);
 	if (vars.server_state.client_max_body_size == 1)
 		throw std::runtime_error(Syntax_error(vars.line));
+}
+
+
+void	check_set_root(t_parse &vars, size_t &pos)
+{
+	int found = semicolon_check(vars, pos);
+	if (found == 0 || vars.server_state.root == 2)
+		throw std::runtime_error(Syntax_error(vars.line));
+	else if (found == 1)
+	{
+		if ((vars.tokens.size() - pos) != 1 )
+			throw std::runtime_error(Invalid_arguments(vars.line));
+		std::vector<std::string> t_vec = split_line(vars.tokens[pos], ";");
+		if (!t_vec.empty())
+		{
+			vars.tmp_server.root = t_vec[0];
+			vars.server_state.root = 2;
+			pos++;
+		}
+	}
+	else if (found == 2)
+	{
+		if ((vars.tokens.size() - pos) != 2)
+			throw std::runtime_error(Invalid_arguments(vars.line));
+		vars.tmp_server.root = vars.tokens[pos];
+		vars.server_state.root = 2;
+		pos = pos + 2;
+	}
+}
+
+void	root(t_parse &vars, size_t &pos)
+{
+	if (!vars.server_state.root)
+	{
+		vars.server_state.root = 1;
+		pos++;
+	}
+	// while (pos < vars.tokens.size())
+		check_set_root(vars, pos);
+	if (vars.server_state.root == 1)
+		throw std::runtime_error(Syntax_error(vars.line));
+}
+
+void	check_set_error_page(t_parse &vars, size_t &pos)
+{
+	size_t found = semicolon_check(vars, pos);
+	if (found == 0)
+		throw std::runtime_error(Syntax_error(vars.line));
+	else if (found == 1)
+	{
+		if ((vars.tokens.size() - pos) != 2)
+			throw std::runtime_error(Invalid_arguments(vars.line));
+		std::vector<std::string> t_vec = split_line(vars.tokens.back(), ";");
+		if (!t_vec.empty())
+		{
+			if (!IsNumber(vars.tokens[pos]))
+				throw std::runtime_error(unexpected_token(vars.tokens[pos]));
+			std::pair<std::map<int , std::string>::iterator, bool> exist = vars.tmp_server.error_pages.insert(std::pair<int, std::string> (std::stoi(vars.tokens[pos]), t_vec[0]));
+			if (!exist.second)
+				throw std::runtime_error(duplicate_key(vars.line));
+			vars.server_state.error_page = 2;
+			pos = pos + 2;
+		}
+	}
+	else if (found == 2)
+	{
+		if ((vars.tokens.size() - pos) != 3)
+			throw std::runtime_error(Invalid_arguments(vars.line));
+		if (!IsNumber(vars.tokens[pos]))
+				throw std::runtime_error(unexpected_token(vars.tokens[pos]));
+			std::pair<std::map<int , std::string>::iterator, bool> exist = vars.tmp_server.error_pages.insert(std::pair<int, std::string> (std::stoi(vars.tokens[pos]), vars.tokens[pos + 1]));
+			if (!exist.second)
+				throw std::runtime_error(duplicate_key(vars.line));
+			vars.server_state.error_page = 2;
+		pos = pos + 3;
+	}
+}
+
+void	error_page(t_parse &vars, size_t &pos)
+{
+	if (!vars.server_state.error_page)
+		vars.server_state.error_page = 1;
+	pos++;
+	// while (pos < vars.tokens.size())
+		check_set_error_page(vars, pos);
+	// if (vars.server_state.error_page == 1)
+	// 	throw std::runtime_error(Syntax_error(vars.line));
+}
+
+void	check_set_index(t_parse &vars, size_t &pos, std::string &index, int &ref_state)
+{
+	size_t found = semicolon_check(vars, pos);
+	if (found == 0 || ref_state == 2)
+		throw std::runtime_error(Syntax_error(vars.line));
+	else if (found == 1)
+	{
+		if ((vars.tokens.size() - pos) != 1)
+			throw std::runtime_error(Invalid_arguments(vars.line));
+		std::vector<std::string> t_vec = split_line(vars.tokens[pos], ";");
+		if (!t_vec.empty())
+		{
+			index = t_vec[0];
+			ref_state = 2;
+			pos++;
+		}
+	}
+	else if (found == 2)
+	{
+		if ((vars.tokens.size() - pos) != 2)
+			throw std::runtime_error(Invalid_arguments(vars.line));
+		index = vars.tokens[pos];
+		ref_state = 2;
+		pos = pos + 2;
+	}
+}
+
+void	index(t_parse &vars, size_t &pos, std::string &index, int &ref_state)
+{
+	if (!ref_state)
+	{
+		ref_state = 1;
+		pos++;
+	}
+	// while (pos < vars.tokens.size())
+		check_set_index(vars, pos, index, ref_state);
+}
+
+void	check_equal_modifier(t_parse &vars, size_t pos)
+{
+	if (!vars.tokens[pos].compare("="))
+		{
+			vars.tmp_location.location.first = true;
+			pos++;
+		}
+}
+
+void	set_location(t_parse &vars, size_t &pos)
+{
+	if (vars.tokens.size() < 2 || vars.tokens.size() > 4)
+		throw std::runtime_error(Invalid_arguments(vars.line));
+	else
+	{
+		pos++;
+		check_equal_modifier(vars, pos);
+		if (vars.tmp_location.location.first && pos == vars.tokens.size())
+			throw std::runtime_error(Invalid_arguments(vars.line));
+		vars.tmp_location.location.second = vars.tokens[pos];
+		pos++;
+		vars.server_state.location = 1;
+		if (pos < vars.tokens.size())
+			left_brace(vars, pos);
+	}
 }
 
 void	server_block(t_parse &vars, config &configs)
 {
 	size_t pos = 0;
-	size_t cmp = vars.tokens[pos].compare("server");
-	if (vars.server_state.server == 0 && cmp)
+	if (!vars.server_state.server && vars.tokens[pos].compare("server"))
 		throw std::runtime_error(unexpected_token(vars.tokens[pos]));
 	else if (!vars.server_state.server) // if server_state 0
 	{
@@ -227,7 +394,9 @@ void	server_block(t_parse &vars, config &configs)
 	}
 	while (pos < vars.tokens.size())
 	{
-		if (!vars.tokens[pos].compare("{"))
+		if (!vars.tokens[pos].compare("location"))
+			set_location(vars, pos);
+		else if (vars.server_state.server == 1 || !vars.tokens[pos].compare("{"))
 			left_brace(vars, pos);
 		else if (!vars.tokens[pos].compare("listen"))
 			listen(vars, pos);
@@ -235,30 +404,21 @@ void	server_block(t_parse &vars, config &configs)
 			host(vars, pos);
 		else if (!vars.tokens[pos].compare("server_name"))
 			server_name(vars, pos);
-		else if (!vars.tokens[pos].compare("client_max_body"))
+		else if (!vars.tokens[pos].compare("client_max_body_size"))
 			client_max_body_size(vars, pos);
 		else if (!vars.tokens[pos].compare("root"))
-		{
-			std::cout << "root found\n";
-			pos++;
-		}
-		else if (!vars.tokens[pos].compare("location"))
-		{
-			std::cout << "location found\n";
-			pos++;
-		}
+			root(vars, pos);
 		else if (!vars.tokens[pos].compare("index"))
-		{
-			std::cout << "index found\n";
-			pos++;
-		}
-		else if (!vars.tokens[pos].compare("}"))
-		{
-			std::cout << "right brace found\n";
-			pos++;
-		}
+			index(vars, pos, vars.tmp_server.index, vars.server_state.index);
+		else if (!vars.tokens[pos].compare("error_page"))
+			error_page(vars, pos);
 		else
 			throw std::runtime_error(unexpected_token("unknown : " + vars.tokens[pos]));
 	}
+		// else if (!vars.tokens[pos].compare("}"))
+		// {
+		// 	std::cout << "right brace found\n";
+		// 	pos++;
+		// }
 	return ;
 }
