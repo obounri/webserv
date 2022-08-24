@@ -44,3 +44,24 @@ bool	Is_IP_Adress(std::string &str)
 	}
 	return true;
 }
+
+int		semicolon_check(t_parse &vars, size_t &pos)
+{
+	size_t found;
+	size_t i = pos;
+	while (i < vars.tokens.size())
+	{
+		if ((found = vars.tokens[i].find(";")) == std::string::npos)
+			i++;
+		else
+			break;
+	}
+	if (i == vars.tokens.size() - 1)
+	{
+		if (!found && vars.tokens[i].length() == 1)
+			return 2;
+		else if (found != std::string::npos && found == vars.tokens[i].length() - 1)
+			return 1;
+	}
+    return 0;
+}
