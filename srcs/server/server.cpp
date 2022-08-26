@@ -99,8 +99,7 @@ void    Server::recv_request(client *c)
     }
 }
 
-void    Server::send_request(client *c)
-{
+void    Server::send_request(client *c) {
     int sent = 0, to_send = c->sendBuffer.length() - c->sent;
     struct kevent evSet;
 
