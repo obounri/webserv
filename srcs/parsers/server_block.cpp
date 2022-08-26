@@ -354,26 +354,24 @@ void	index(t_parse &vars, size_t &pos, std::string &index, int &ref_state)
 		check_set_index(vars, pos, index, ref_state);
 }
 
-void	check_equal_modifier(t_parse &vars, size_t pos)
-{
-	if (!vars.tokens[pos].compare("="))
-		{
-			vars.tmp_location.location.first = true;
-			pos++;
-		}
-}
+// void	check_equal_modifier(t_parse &vars, size_t pos)
+// {
+// 	if (!vars.tokens[pos].compare("="))
+// 		{
+// 			vars.tmp_location.location.first = true;
+// 			pos++;
+// 		}
+// }
 
-void	set_location(t_parse &vars, size_t &pos)
+void	check_set_location(t_parse &vars, size_t &pos)
 {
 	if (vars.tokens.size() < 2 || vars.tokens.size() > 4)
 		throw std::runtime_error(Invalid_arguments(vars.line));
 	else
 	{
 		pos++;
-		check_equal_modifier(vars, pos);
-		if (vars.tmp_location.location.first && pos == vars.tokens.size())
-			throw std::runtime_error(Invalid_arguments(vars.line));
-		vars.tmp_location.location.second = vars.tokens[pos];
+		vars.tmp_location.set_path(vars.tokens[pos]);
+		// vars.tmp_location.location.second = vars.tokens[pos];
 		pos++;
 		vars.server_state.location = 1;
 		if (pos < vars.tokens.size())
@@ -395,7 +393,7 @@ void	server_block(t_parse &vars, config &configs)
 	while (pos < vars.tokens.size())
 	{
 		if (!vars.tokens[pos].compare("location"))
-			set_location(vars, pos);
+			check_set_location(vars, pos);
 		else if (vars.server_state.server == 1 || !vars.tokens[pos].compare("{"))
 			left_brace(vars, pos);
 		else if (!vars.tokens[pos].compare("listen"))

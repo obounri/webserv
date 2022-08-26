@@ -3,6 +3,12 @@ CC = c++
 CFLAGS = -Wall -Wextra -Werror -std=c++98
 
 HEADER = srcs/parsers/parse_config.hpp
+# CFLAGS = -no-pie -Wall -Wextra -Werror -std=c++98
+CFLAGS = -Wall -Wextra -Werror -std=c++98
+
+HEADER = srcs/server/server.hpp \
+		srcs/parsers/location.cpp\
+		srcs/sockets/sockets.hpp 
 
 NAME = webserv
 NAME_CLIENT = client
@@ -11,7 +17,11 @@ SRC_FILE =  main.cpp \
 			srcs/parsers/server_block.cpp \
 			srcs/parsers/location_block.cpp \
 			srcs/parsers/utils.cpp \
-			srcs/parsers/Syntax_errors.cpp
+			srcs/parsers/Syntax_errors.cpp \
+			srcs/parsers/location.cpp \
+			srcs/server/server.cpp \
+			srcs/sockets/sockets.cpp 
+
 CLIENT = client.cpp
 # OBJ_FILE = $(SRC_FILE:.cpp=.o)
 

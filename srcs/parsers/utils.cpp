@@ -65,3 +65,12 @@ int		semicolon_check(t_parse &vars, size_t &pos)
 	}
     return 0;
 }
+
+void	comment_check(std::string& line)
+{
+	size_t	found;
+	found = line.find('#');
+	if (found != std::string::npos)
+		line = line.erase(found);
+	return ;
+}

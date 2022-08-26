@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <vector>
 #include <map>
+#include "location.hpp"
 
 // class m_errors : public std::exception
 // {
@@ -52,16 +53,17 @@ typedef	struct							l_state
 	int									retrn;
 }										loc_state;
 
+
 // SECTION - Location Block Structure
 
-typedef struct							s_location
-{
-	std::pair<bool, std::string>		location;
-	std::string							index;
-	bool								autoindex;
-	bool								upload_enable;
-	std::vector<std::string>			allow_method;
-}										t_location;
+// typedef struct							s_location
+// {
+// 	std::pair<bool, std::string>		location;
+// 	std::string							index;
+// 	bool								autoindex;
+// 	bool								upload_enable;
+// 	std::vector<std::string>			allow_method;
+// }										t_location;
 
 // SECTION - Server Block Structure
 
@@ -74,7 +76,7 @@ typedef struct							s_server
 	std::string							index;
 	std::string							root;
 	std::map<int, std::string>			error_pages;
-	std::map<std::string, t_location>	location;
+	std::map<std::string, location>		location;
 }										v_server;
 
 // SECTION - Config File Parsing Structure
@@ -86,7 +88,7 @@ typedef struct							s_parse
 	std::vector<std::string>			tokens;
 	serv_state							server_state;
 	loc_state							location_state;
-	t_location							tmp_location;
+	location							tmp_location;
 	v_server							tmp_server;
 
 }										t_parse;

@@ -7,17 +7,18 @@
 #include <string>
 #include <stdlib.h>
 
+#define DUMMY_HTTP_REQUEST "GET / HTTP/1.1\r\nHost: localhost:PORT\r\nContent-Length: 12\r\n\r\nHello world!\r\n\r\n"
+
 int main(int ac, char **av) {
 
-    if (ac == 4) {
-        std::string mess = av[2];
+    if (ac == 3) {
         struct sockaddr_in hints;
         int conn_to = atoi(av[1]);
-        int n = atoi(av[3]);
+        int n = atoi(av[2]);
 
         hints.sin_family = AF_INET;
         hints.sin_port = htons(conn_to);     // short, network byte order
-        hints.sin_addr.s_addr = inet_addr("192.168.1.69");
+        hints.sin_addr.s_addr = inet_addr("127.0.0.1");
 
         int sent;
         while (n--)
@@ -30,7 +31,7 @@ int main(int ac, char **av) {
             }   
             if ((connect(sockfd, (struct sockaddr *)&hints, sizeof hints)) != -1) {
                 std::cout << "connected" << std::endl;
-                if ((sent = send(sockfd, av[2], mess.length(), 0)) != -1) {
+                if ((sent = send(sockfd, DUMMY_HTTP_REQUEST, sizeof DUMMY_HTTP_REQUEST, 0)) != -1) {
                     std::cout << "Message sent = " << sent << std::endl;
                 }
                 else
@@ -43,7 +44,7 @@ int main(int ac, char **av) {
                 }
                 else
                     std::cout << "reading failed.." << std::endl << std::endl;
-                delete buffer;
+                delete [] buffer;
             }
             else
                 std::cout << "connection failed" << std::endl;

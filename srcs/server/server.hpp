@@ -2,139 +2,80 @@
 # define SERVER_HPP
 
 #include "../sockets/sockets.hpp"
-#include <iostream>
-#include "/usr/include/kqueue/sys/event.h"
+#include <list>
+#include "../parsers/parse_config.hpp"
 
-#define MAX_REQUEST_SIZE 1024
-#define DUMMY_HTTP_RESPONSE "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!"
+#if 1
+    #include <sys/event.h>
+#else
+    #include "/usr/include/kqueue/sys/event.h"
+#endif
+    
 
-// struct client
-// {
-//     int         fd;
-//     std::string ip;
+#define MAX_RECV_SIZE 1024
+#define DUMMY_HTTP_RESPONSE "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 12\r\n\r\nHello world!\r\n\r\n"
 
-// };
+typedef struct s_client
+{
+    int         fd;
+    int         port;
+    std::string ip;
 
+    char        recBuffer[MAX_RECV_SIZE];
+    std::string header;
+    std::string req;
+    int         rec;
+    size_t      body_len;
+    // std::string send;
+
+    s_client(int _fd, std::string _ip, int _port):fd(_fd), port(_port), ip(_ip) {} ;
+} client;
 
 class Server
 {
     private:
         /* data */
-        Socket * listener; // listener socket(s)
-        int      keq;
+        
+        std::string host;
+		std::string port;
+		std::string name;
+		int limit_body;
+		std::string limit_body_s;
+		std::list<std::string> methods;
+		std::map<std::string ,location> locations;
+		std::string root;
+        std::map<std::string, std::string> error_pg;
+		std::map<std::string ,std::string> extra_headers;
+		std::map<std::string, std::string> cgi;
+		std::string default_page;
+		std::string file_open;
+        // headers header_var;
 
-        // void    poll_connections();
-        void    accept_new_connection();
-        void    destroy_connection(int fd);
-        void    handle_request(int fd);
-        void    send_request(int fd);
-        // void    receiver();
-        // void    sender();
+        std::vector<Socket *>   listeners;
+        std::vector<client>     clients;
+        int                     keq;
+
+        void    accept_new_connection(unsigned long int fd);
+        void    destroy_connection(int fd, int event);
+        void    handle_request(client *c);
+        void    send_request(client *c);
+
+        int     is_listener(unsigned long int fd);
     public:
-        Server(int domain, int type, int interface, int port, int backlog);
+        Server(config data);
         ~Server();
 
         void            run();
+
+        // Seters
+
+        void set_host(std::string str);
+		void set_port(std::string str);
+		void set_name(std::string str);
+		void set_limit(std::string str);
+		void set_methods(std::string str);
+        void set_cgi(std::string name, std::string path);
 };
-
-Server::Server(int domain, int type, int interface, int port, int backlog)
-{
-    struct kevent evSet;
-
-    std::cout << "constructing server.." << std::endl;
-    listener = new Socket(domain, type, interface, port, backlog);
-    keq = kqueue();
-    EV_SET(&evSet, listener->get_socket(), EVFILT_READ, EV_ADD, 0, 0, NULL);
-    kevent(keq, &evSet, 1, NULL, 0, NULL);
-}
-
-Server::~Server()
-{
-    std::cout << "server destructor called.." << std::endl;
-    delete listener;
-}
-
-void    Server::accept_new_connection() 
-{
-    struct kevent evSet;
-    int newfd;
-    struct sockaddr_in their_addr;
-    socklen_t   addr_size;
-    addr_size = sizeof their_addr;
-
-    newfd = accept(listener->get_socket(), (sockaddr *)&their_addr, &addr_size);
-    // evSet = new struct kevent[2];
-    EV_SET(&evSet, newfd, EVFILT_READ, EV_ADD, 0, 0, NULL);
-    kevent(keq, &evSet, 1, NULL, 0, NULL);
-    std::cout << "got connection request from fd = " << newfd << ".." << std::endl;
-    std::cout << inet_ntoa(their_addr.sin_addr) << std::endl;
-    std::cout << ntohs(their_addr.sin_port) << std::endl << std::endl;
-}
-
-void    Server::destroy_connection(int fd)
-{
-    struct kevent evSet;
-
-    std::cout << "client " << fd << " disconnected.." << std::endl;
-    EV_SET(&evSet, fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
-    kevent(keq, &evSet, 1, NULL, 0, NULL);
-    close(fd);
-}
-
-void    Server::handle_request(int fd)
-{
-    int rec;
-    struct kevent evSet;
-
-    char *buffer = new char[MAX_REQUEST_SIZE];
-    if ((rec = recv(fd, buffer, MAX_REQUEST_SIZE, 0)) != -1) {
-        std::cout << "received message of len " << rec << " content:" << std::endl;
-        std::cout << buffer << std::endl << std::endl;
-    }
-    else
-        std::cout << "reading failed.." << std::endl << std::endl;
-    delete buffer;
-    EV_SET(&evSet, fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
-    kevent(keq, &evSet, 1, NULL, 0, NULL);
-    EV_SET(&evSet, fd, EVFILT_WRITE, EV_ADD, 0, 0, NULL);
-    kevent(keq, &evSet, 1, NULL, 0, NULL);
-}
-
-void    Server::send_request(int fd)
-{
-    int sent;
-    struct kevent evSet;
-
-    std::cout << ">> fd " << fd << " is ready for writing" << std::endl;
-    if ((sent = send(fd, DUMMY_HTTP_RESPONSE, sizeof DUMMY_HTTP_RESPONSE, 0)) != -1) {
-        std::cout << "message sent = " << sent << std::endl;
-    }
-    else
-        std::cout << "sending failed.." << std::endl;
-    EV_SET(&evSet, fd, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
-    kevent(keq, &evSet, 1, NULL, 0, NULL);
-    close(fd);
-}
-
-void Server::run() {
-    struct kevent evList[32];
-
-    std::cout << "server up and running.." << std::endl;
-    for(;;) {
-        int num_events = kevent(keq, NULL, 0, evList, 32, NULL);
-        for (int i = 0; i < num_events; i++)
-        {
-            if (evList[i].ident == listener->get_socket())
-                accept_new_connection();
-            else if (evList[i].flags & EV_EOF)
-                destroy_connection(evList[i].ident);
-            else if (evList[i].filter == EVFILT_READ)
-                handle_request(evList[i].ident);
-            else if (evList[i].filter == EVFILT_WRITE)
-                send_request(evList[i].ident);
-        }
-    }
-}
 
 // int kevent(int kq, const struct kevent *changelist, int nchanges, struct kevent *eventlist, int nevents, const struct timespec *timeout);
 // EV_SET(&kev, ident, filter, flags, fflags, data, udata);

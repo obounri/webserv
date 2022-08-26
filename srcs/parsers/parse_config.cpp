@@ -1,15 +1,6 @@
 #include "parse_config.hpp"
 
-void	comment_check(std::string& line)
-{
-	size_t	found;
-	found = line.find('#');
-	if (found != std::string::npos)
-		line = line.erase(found);
-	return ;
-}
-
-void	print_conf(t_parse &vars)
+static void	print_conf(t_parse &vars)
 {
 	std::cout << "\n=============== configs ==================\n";
 	if (vars.tmp_server.port)
