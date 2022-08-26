@@ -44,13 +44,6 @@ void	left_brace(t_parse &vars , size_t &pos)
 
 // }
 
-void	set_port(t_parse &vars, std::string &str)
-{
-		vars.tmp_server.port = std::stoi(str, nullptr, 10);
-		if (vars.tmp_server.port < 0 || vars.tmp_server.port > 65536)
-			throw std::runtime_error(Syntax_error("listen port out of range"));
-}
-
 void     check_set_port(t_parse &vars, size_t &pos)
 {
 	int found = semicolon_check(vars, pos);
@@ -65,7 +58,10 @@ void     check_set_port(t_parse &vars, size_t &pos)
 		{
 			if (!IsNumber(t_vec[0]))
 				throw std::runtime_error(unexpected_token(vars.tokens[pos]));
-			set_port(vars, t_vec[0]);
+			int port = std::stoi(t_vec[0], nullptr, 10);
+			if (port < 0 || port > 65536)
+				throw std::runtime_error(Syntax_error("listen port out of range"));
+			vars.tmp_serv.set_port(port);
 			vars.server_state.listen = 2;
 			pos++;
 		}
@@ -76,25 +72,28 @@ void     check_set_port(t_parse &vars, size_t &pos)
 			throw std::runtime_error(Invalid_arguments(vars.line));
 		if (!IsNumber(vars.tokens[pos]))
 			throw std::runtime_error(unexpected_token(vars.tokens[pos]));
-		set_port(vars, vars.tokens[pos]);
+		int port = std::stoi(vars.tokens[pos], nullptr, 10);
+		if (port < 0 || port > 65536)
+			throw std::runtime_error(Syntax_error("listen port out of range"));
+		vars.tmp_serv.set_port(port);
 		vars.server_state.listen = 2;
 		pos = pos + 2;
 	}
 }
 
-void	listen(t_parse &vars, size_t &pos)
-{
-	if (!vars.server_state.listen)
-	{
-		vars.server_state.listen = 1;
-		pos++;
-	}
-		check_set_port(vars, pos);
-		// if (vars.server_state.listen == 1)
-		// 	throw std::runtime_error(Syntax_error(vars.line));
-}
+// void	listen(t_parse &vars, size_t &pos)
+// {
+// 	if (!vars.server_state.listen)
+// 	{
+// 		vars.server_state.listen = 1;
+// 		pos++;
+// 	}
+// 		check_set_port(vars, pos);
+// 		// if (vars.server_state.listen == 1)
+// 		// 	throw std::runtime_error(Syntax_error(vars.line));
+// }
 
-void	check_set_ip(t_parse &vars, size_t &pos)
+void	check_set_host(t_parse &vars, size_t &pos)
 {
 	int found = semicolon_check(vars, pos);
 	if (found == 0 || vars.server_state.host == 2)
@@ -108,7 +107,7 @@ void	check_set_ip(t_parse &vars, size_t &pos)
 		{
 			if (!Is_IP_Adress(t_vec[0]))
 				throw std::runtime_error(unexpected_token(vars.tokens[pos]));
-			vars.tmp_server.host = t_vec[0];
+			vars.tmp_serv.set_host(t_vec[0]);
 			vars.server_state.host = 2;
 			pos++;
 		}
@@ -119,24 +118,26 @@ void	check_set_ip(t_parse &vars, size_t &pos)
 			throw std::runtime_error(Invalid_arguments(vars.line));
 		if (!Is_IP_Adress(vars.tokens[pos]))
 			throw std::runtime_error(unexpected_token(vars.tokens[pos]));
-		vars.tmp_server.host = vars.tokens[pos];
+		vars.tmp_serv.set_host(vars.tokens[pos]);
 		vars.server_state.host = 2;
 		pos = pos + 2;
 	}
-}
-
-void	host(t_parse &vars, size_t &pos)
-{
-	if (!vars.server_state.host)
-	{
-		vars.server_state.host = 1;
-		pos++;
-	}
-	while (pos < vars.tokens.size())
-		check_set_ip(vars, pos);
 	if (vars.server_state.host == 1)
 		throw std::runtime_error(Syntax_error(vars.line));
 }
+
+// void	host(t_parse &vars, size_t &pos)
+// {
+// 	if (!vars.server_state.host)
+// 	{
+// 		vars.server_state.host = 1;
+// 		pos++;
+// 	}
+// 	while (pos < vars.tokens.size())
+// 		check_set_ip(vars, pos);
+// 	if (vars.server_state.host == 1)
+// 		throw std::runtime_error(Syntax_error(vars.line));
+// }
 
 void	check_set_server_name(t_parse &vars, size_t &pos)
 {
@@ -199,7 +200,10 @@ void	check_set_client_max_body_size(t_parse &vars, size_t &pos)
 		{
 			if (!IsNumber(t_vec[0]))
 				throw std::runtime_error(unexpected_token(vars.tokens[pos]));
-			set_client_max_body_size(vars, t_vec[0]);
+			int limit_body = std::stoi(t_vec[0]);
+			vars.tmp_serv.set_limit(limit_body);
+	if (vars.tmp_serv.get_limit_body() <= 0)
+		throw std::runtime_error("Invalid client max body size : " + vars.tokens[pos]);
 			vars.server_state.client_max_body_size = 2;
 			pos++;
 		}
@@ -209,29 +213,39 @@ void	check_set_client_max_body_size(t_parse &vars, size_t &pos)
 		if ((vars.tokens.size() - pos) != 2)
 			throw std::runtime_error(Invalid_arguments(vars.line));
 		if (!IsNumber(vars.tokens[pos]))
-			throw std::runtime_error(Syntax_error(vars.line));
-		set_client_max_body_size(vars, vars.tokens[pos]);
+			throw std::runtime_error(unexpected_token(vars.tokens[pos]));
+		int limit_body = std::stoi(vars.tokens[pos]);
+		vars.tmp_serv.set_limit(limit_body);
+		if (vars.tmp_serv.get_limit_body() <= 0)
+			throw std::runtime_error("Invalid client max body size : " + vars.tokens[pos]);
 		vars.server_state.client_max_body_size = 2;
 		pos = pos + 2;
 	}
-}
-
-void	client_max_body_size(t_parse &vars, size_t &pos)
-{
-	if (!vars.server_state.client_max_body_size)
-	{
-		vars.server_state.client_max_body_size = 1;
-		pos++;
-	}
-	// while (pos < vars.tokens.size())
-		check_set_client_max_body_size(vars, pos);
 	if (vars.server_state.client_max_body_size == 1)
 		throw std::runtime_error(Syntax_error(vars.line));
 }
 
+// void	client_max_body_size(t_parse &vars, size_t &pos)
+// {
+// 	if (!vars.server_state.client_max_body_size)
+// 	{
+// 		vars.server_state.client_max_body_size = 1;
+// 		pos++;
+// 	}
+// 	// while (pos < vars.tokens.size())
+// 		check_set_client_max_body_size(vars, pos);
+// 	if (vars.server_state.client_max_body_size == 1)
+// 		throw std::runtime_error(Syntax_error(vars.line));
+// }
+
 
 void	check_set_root(t_parse &vars, size_t &pos)
 {
+	if (!vars.server_state.root)
+	{
+		vars.server_state.root = 1;
+		pos++;
+	}
 	int found = semicolon_check(vars, pos);
 	if (found == 0 || vars.server_state.root == 2)
 		throw std::runtime_error(Syntax_error(vars.line));
@@ -242,7 +256,7 @@ void	check_set_root(t_parse &vars, size_t &pos)
 		std::vector<std::string> t_vec = split_line(vars.tokens[pos], ";");
 		if (!t_vec.empty())
 		{
-			vars.tmp_server.root = t_vec[0];
+			vars.tmp_serv.set_root(t_vec[0]);
 			vars.server_state.root = 2;
 			pos++;
 		}
@@ -251,27 +265,19 @@ void	check_set_root(t_parse &vars, size_t &pos)
 	{
 		if ((vars.tokens.size() - pos) != 2)
 			throw std::runtime_error(Invalid_arguments(vars.line));
-		vars.tmp_server.root = vars.tokens[pos];
+		vars.tmp_serv.set_root(vars.tokens[pos]);
 		vars.server_state.root = 2;
 		pos = pos + 2;
 	}
-}
-
-void	root(t_parse &vars, size_t &pos)
-{
-	if (!vars.server_state.root)
-	{
-		vars.server_state.root = 1;
-		pos++;
-	}
-	// while (pos < vars.tokens.size())
-		check_set_root(vars, pos);
 	if (vars.server_state.root == 1)
 		throw std::runtime_error(Syntax_error(vars.line));
 }
 
 void	check_set_error_page(t_parse &vars, size_t &pos)
 {
+	if (!vars.server_state.error_page)
+		vars.server_state.error_page = 1;
+	pos++;
 	size_t found = semicolon_check(vars, pos);
 	if (found == 0)
 		throw std::runtime_error(Syntax_error(vars.line));
@@ -284,7 +290,9 @@ void	check_set_error_page(t_parse &vars, size_t &pos)
 		{
 			if (!IsNumber(vars.tokens[pos]))
 				throw std::runtime_error(unexpected_token(vars.tokens[pos]));
-			std::pair<std::map<int , std::string>::iterator, bool> exist = vars.tmp_server.error_pages.insert(std::pair<int, std::string> (std::stoi(vars.tokens[pos]), t_vec[0]));
+			int error_page_number = std::stoi(vars.tokens[pos]);
+			std::pair<int, std::string> error_page(error_page_number, vars.tokens[pos + 1]); 
+			std::pair<std::map<int , std::string>::iterator, bool> exist = vars.tmp_serv.set_error_pages(error_page);  
 			if (!exist.second)
 				throw std::runtime_error(duplicate_key(vars.line));
 			vars.server_state.error_page = 2;
@@ -297,29 +305,20 @@ void	check_set_error_page(t_parse &vars, size_t &pos)
 			throw std::runtime_error(Invalid_arguments(vars.line));
 		if (!IsNumber(vars.tokens[pos]))
 				throw std::runtime_error(unexpected_token(vars.tokens[pos]));
-			std::pair<std::map<int , std::string>::iterator, bool> exist = vars.tmp_server.error_pages.insert(std::pair<int, std::string> (std::stoi(vars.tokens[pos]), vars.tokens[pos + 1]));
-			if (!exist.second)
-				throw std::runtime_error(duplicate_key(vars.line));
-			vars.server_state.error_page = 2;
+		int error_page_number = std::stoi(vars.tokens[pos]);
+		std::pair<int, std::string> error_page(error_page_number, vars.tokens[pos + 1]); 
+		std::pair<std::map<int , std::string>::iterator, bool> exist = vars.tmp_serv.set_error_pages(error_page);
+		if (!exist.second)
+			throw std::runtime_error(duplicate_key(vars.line));
+		vars.server_state.error_page = 2;
 		pos = pos + 3;
 	}
 }
 
-void	error_page(t_parse &vars, size_t &pos)
-{
-	if (!vars.server_state.error_page)
-		vars.server_state.error_page = 1;
-	pos++;
-	// while (pos < vars.tokens.size())
-		check_set_error_page(vars, pos);
-	// if (vars.server_state.error_page == 1)
-	// 	throw std::runtime_error(Syntax_error(vars.line));
-}
-
-void	check_set_index(t_parse &vars, size_t &pos, std::string &index, int &ref_state)
+void	check_set_server_index(t_parse &vars, size_t &pos)
 {
 	size_t found = semicolon_check(vars, pos);
-	if (found == 0 || ref_state == 2)
+	if (found == 0 || vars.server_state.index == 2)
 		throw std::runtime_error(Syntax_error(vars.line));
 	else if (found == 1)
 	{
@@ -328,8 +327,8 @@ void	check_set_index(t_parse &vars, size_t &pos, std::string &index, int &ref_st
 		std::vector<std::string> t_vec = split_line(vars.tokens[pos], ";");
 		if (!t_vec.empty())
 		{
-			index = t_vec[0];
-			ref_state = 2;
+			vars.tmp_serv.set_index(t_vec[0]);
+			vars.server_state.index = 2;
 			pos++;
 		}
 	}
@@ -337,30 +336,21 @@ void	check_set_index(t_parse &vars, size_t &pos, std::string &index, int &ref_st
 	{
 		if ((vars.tokens.size() - pos) != 2)
 			throw std::runtime_error(Invalid_arguments(vars.line));
-		index = vars.tokens[pos];
-		ref_state = 2;
+		vars.tmp_serv.set_index(vars.tokens[pos]);
+		vars.server_state.index = 2;
 		pos = pos + 2;
 	}
 }
 
-void	index(t_parse &vars, size_t &pos, std::string &index, int &ref_state)
-{
-	if (!ref_state)
-	{
-		ref_state = 1;
-		pos++;
-	}
-	// while (pos < vars.tokens.size())
-		check_set_index(vars, pos, index, ref_state);
-}
-
-// void	check_equal_modifier(t_parse &vars, size_t pos)
+// void	index(t_parse &vars, size_t &pos, std::string &index, int &ref_state)
 // {
-// 	if (!vars.tokens[pos].compare("="))
-// 		{
-// 			vars.tmp_location.location.first = true;
-// 			pos++;
-// 		}
+// 	if (!ref_state)
+// 	{
+// 		ref_state = 1;
+// 		pos++;
+// 	}
+// 	// while (pos < vars.tokens.size())
+// 		check_set_index(vars, pos, index, ref_state);
 // }
 
 void	check_set_location(t_parse &vars, size_t &pos)
@@ -397,19 +387,19 @@ void	server_block(t_parse &vars, config &configs)
 		else if (vars.server_state.server == 1 || !vars.tokens[pos].compare("{"))
 			left_brace(vars, pos);
 		else if (!vars.tokens[pos].compare("listen"))
-			listen(vars, pos);
+			check_set_port(vars, pos);
 		else if (!vars.tokens[pos].compare("host"))
-			host(vars, pos);
+			check_set_host(vars, pos);
 		else if (!vars.tokens[pos].compare("server_name"))
 			server_name(vars, pos);
 		else if (!vars.tokens[pos].compare("client_max_body_size"))
 			client_max_body_size(vars, pos);
 		else if (!vars.tokens[pos].compare("root"))
-			root(vars, pos);
+			check_set_root(vars, pos);
 		else if (!vars.tokens[pos].compare("index"))
-			index(vars, pos, vars.tmp_server.index, vars.server_state.index);
+			check_set_server_index(vars, pos);
 		else if (!vars.tokens[pos].compare("error_page"))
-			error_page(vars, pos);
+			check_set_error_page(vars, pos);
 		else
 			throw std::runtime_error(unexpected_token("unknown : " + vars.tokens[pos]));
 	}

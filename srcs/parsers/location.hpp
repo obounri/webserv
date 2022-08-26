@@ -3,19 +3,21 @@
 
 #include <iostream>
 #include <vector>
-#include "srcs/parsers/parse_config.hpp"
 
 // SECTION - Location Class
+
+// struct s_parse;
+typedef struct s_parse t_parse;
 
 class location
 {
 	private:
 		std::string path;							// Location Name
 		std::string root;							// Root Directory
+		int index;									// index ON or OFF
 		std::vector<std::string> default_file;		// Default Index Files
 		std::vector<std::string> allowed;			// Allowed Methods
 		std::string body_s;							// Limit Body String
-		int index;									// index ON or OFF
 		// int par_error;								// Parse Error Happen
 		int limit_client_body;						// max body size
 		std::string _access;						// access file path
@@ -54,5 +56,7 @@ class location
 
 		void	check_set_autoindex(t_parse &vars, size_t &pos);
 		void	check_set_location_index(t_parse &vars, size_t &pos);
+
+#include "parse_config.hpp"
 
 #endif

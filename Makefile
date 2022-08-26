@@ -7,7 +7,7 @@ HEADER = srcs/parsers/parse_config.hpp
 CFLAGS = -Wall -Wextra -Werror -std=c++98
 
 HEADER = srcs/server/server.hpp \
-		srcs/parsers/location.cpp\
+		srcs/parsers/location.hpp\
 		srcs/sockets/sockets.hpp 
 
 NAME = webserv

@@ -140,3 +140,45 @@
 //         }
 //     }
 // }
+
+// SECTION - Constructors / Destructor
+
+Server::Server() {}
+Server::~Server() {}
+
+
+// SECTION - Seters
+
+
+void                                                            Server::set_port(int &port) { this->port = port; }
+
+void                                                            Server::set_host(std::string &str) { this->host = str; }
+
+void                                                            Server::set_index(std::string &index) { this->index = index; }
+
+void                                                            Server::set_name(std::string &str) { this->name; }
+
+void                                                            Server::set_limit(int &limit) { this->limit_body = limit; }
+
+void                                                            Server::set_methods(std::string &str) { this->methods.push_back(str); }
+
+void                                                            Server::set_root(std::string &root) { this->root = root; }
+
+std::pair<std::map<int, std::string>::iterator, bool>           Server::set_error_pages(std::pair<int, std::string> &error_page)
+{
+    std::pair<std::map<int , std::string>::iterator, bool> exist = this->error_pages.insert(error_page);
+    return exist;
+}
+
+
+// Section - Geters
+int                                                             Server::get_port() const { return (this->port); }
+std::string                                                     Server::get_host() const { return (this->host); }
+std::string                                                     Server::get_index() const { return (this->index); }
+std::string                                                     Server::get_name() const { return (this->name); }
+std::string                                                     Server::get_root() const { return (this->root); }
+int                                                             Server::get_limit_body() const { return (this->limit_body); }
+std::vector<std::string>                                        Server::get_methods() const { return (this->methods); }
+std::map<int, std::string>                                      Server::get_error_pages() const { return (this->error_pages); }
+
+// void Server::set_cgi(std::string &name, std::string &path) { }

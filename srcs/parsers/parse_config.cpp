@@ -20,12 +20,12 @@ static void	print_conf(t_parse &vars)
 		for (std::map<int , std::string>::iterator it = vars.tmp_server.error_pages.begin(); it != vars.tmp_server.error_pages.end(); it++)
 			std::cout << "error " << (*it).first << "\t" << (*it).second << std::endl;
 	}
-	if (!vars.tmp_location.autoindex)
+	if (!vars.tmp_location.get_index())
 		std::cout << "autoindex off\n";
 	else
 		std::cout << "autoindex on\n";
-	if (!vars.tmp_location.index.empty())
-	std::cout << "location index : " << vars.tmp_location.index << "\n";
+	if (!vars.tmp_location.get_default().empty())
+	std::cout << "location index : " << vars.tmp_location.get_default()[0] << "\n";
 	std::cout << "\n=========================================\n";
 }
 

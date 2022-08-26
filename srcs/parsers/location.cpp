@@ -94,7 +94,6 @@ void    check_set_autoindex(t_parse &vars, size_t &pos)
         std::vector<std::string> t_vec = split_line(vars.tokens[pos], ";");
         if (!t_vec.empty())
         {
-            int st;
             if (t_vec[0].compare("on"))
                 vars.tmp_location.set_index(1);
             else if (t_vec[0].compare("off"))

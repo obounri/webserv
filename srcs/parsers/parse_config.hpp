@@ -10,7 +10,9 @@
 #include <vector>
 #include <map>
 #include "location.hpp"
+#include "../server/server.hpp"
 
+// class location;
 // class m_errors : public std::exception
 // {
 //     private :
@@ -90,6 +92,7 @@ typedef struct							s_parse
 	loc_state							location_state;
 	location							tmp_location;
 	v_server							tmp_server;
+	Server								tmp_serv;
 
 }										t_parse;
 
@@ -130,7 +133,6 @@ std::vector<std::string> 	split_line(std::string  const &line, std::string const
 int							semicolon_check(t_parse &vars, size_t &pos);
 
 
-
 // SECTION - Syntax Error
 
 std::string					Syntax_error(std::string const &name);
@@ -143,5 +145,6 @@ std::string 				no_server(std::string const &name);
 std::string 				Invalid_arguments(std::string const &name);
 std::string 				duplicate_key(std::string const &name);
 std::string 				duplicate_location(std::string const &name);
+
 
 #endif
