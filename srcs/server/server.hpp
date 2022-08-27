@@ -39,15 +39,16 @@ class Server
         std::string host; // server host
 		int         port; // server port
 		std::string name; // server_name
-		std::string index;   // unknown  (default_page) maybe it index?
-		int limit_body; // client max body size
-		std::vector<std::string> methods; // allowed methods
-		// std::string limit_body_s;
-		std::map<std::string ,location> locations; // location blocks
 		std::string root; // server root
-        std::map<int, std::string> error_pages; // server error pages
+        std::string index;
+		std::string default_page;   // unknown  (default_page) maybe it index?
+		std::string limit_body_s; // didn't use it
+        int limit_body; // client max body size
+		std::list<std::string> methods; // allowed methods
+		std::map<std::string ,location> locations; // location blocks
+        std::map<std::string, std::string> error_pg; // server error pages
 		std::map<std::string, std::string> cgi; // location cgi
-		std::string file_open; // unknown
+		// std::string file_open; // unknown
 		// std::map<std::string ,std::string> extra_headers;  also unknown
         // headers header_var; also unknown
 
@@ -61,36 +62,39 @@ class Server
         void    send_request(client *c);
 
         int     is_listener(unsigned long int fd);
-    
+
     public:
         Server();
         // Server(config data);
         ~Server();
 
-        void            run();
+        void    run();
 
         // Seters
 
-		void                                                        set_port(int &str);
-        void                                                        set_host(std::string& str);
-        void                                                        set_index(std::string &index);
-		void                                                        set_name(std::string& str);
-		void                                                        set_limit(int &limit);
-		void                                                        set_methods(std::string& str);
-		void                                                        set_root(std::string &str);
-        void                                                        set_cgi(std::string& name, std::string path);
-        std::pair<std::map<int, std::string>::iterator, bool>       set_error_pages(std::pair<int, std::string> &error_page);
+		void                                                                set_port(int    &port);
+        void                                                                set_host(std::string& str);
+        void                                                                set_index(std::string &index);
+		void                                                                set_name(std::string &str);
+		void                                                                set_limit(int &limit);
+		void                                                                set_methods(std::string &str);
+		void                                                                set_root(std::string &str);
+        void                                                                set_cgi(std::string &name, std::string &path);
+        std::pair<std::map<std::string, std::string>::iterator, bool>       set_error_page(std::pair<std::string, std::string> &error_page);
 
         // Geters
 
-        int                                                         get_port() const ;
-        std::string                                                 get_host() const ;
-        std::string                                                 get_index() const ;
-        int                                                         get_limit_body() const ;
-        std::string                                                 get_name() const ;
-        std::vector<std::string>                                    get_methods() const ;
-        std::string                                                 get_root() const ;
-        std::map<int, std::string>                                  get_error_pages() const ;
+        int                                                                 get_port() const ;
+        std::string                                                         get_host() const ;
+        std::string                                                         get_index() const ;
+        int                                                                 get_limit() const ;
+        std::string                                                         get_name() const ;
+        std::list<std::string>                                              get_methods() const ;
+        std::string                                                         get_root() const ;
+        std::map<std::string, std::string>                                  get_error_pages() const ;
+        int                                                                 get_limit() const ;
+        int                                                                 value_port() const ;
+		int                                                                 get_pg_error() const ;
 
 
 };
