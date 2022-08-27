@@ -1,9 +1,7 @@
-// #include "../includes/server.hpp"
+#include "srcs/server/server.hpp"
 // #include "../includes/header.hpp"
 #include "srcs/client/client.hpp"
 // add my methods to server and client classes
-
-class server;
 
 int ft_isuppercase(std::string val)
 {
@@ -15,7 +13,7 @@ int ft_isuppercase(std::string val)
 	return (1);
 }
 
-bool check_status(std::string str, server &s)
+bool check_status(std::string str, v_server &s)
 {
 	file_log f;
 	std::vector<std::string> head = ft_split(str, "\n\r");
@@ -41,10 +39,10 @@ bool check_status(std::string str, server &s)
 }
 
 void before_polling_and_pass_to_handle_request() {
-    std::multimap<std::string, server> extra_map;
-	std::vector<server> g_ret; // this is from parser
-	std::map<std::string, server> extra; // what is this
-	std::vector<server>::iterator it = g_ret.begin();
+    std::multimap<std::string, v_server> extra_map;
+	std::vector<v_server> g_ret; // this is from parser
+	std::map<std::string, v_server> extra; // what is this
+	std::vector<v_server>::iterator it = g_ret.begin();
 
 	while (it != g_ret.end())
 	{
@@ -54,10 +52,10 @@ void before_polling_and_pass_to_handle_request() {
 	}
 }
 
-void    handle_request(server &s, client *c, std::multimap<std::string, server> extra)
+void    handle_request(v_server &s, client *c, std::multimap<std::string, v_server> extra)
 {
     std::string server_response;
-    std::multimap<std::string, server>::iterator m_ea;
+    std::multimap<std::string, v_server>::iterator m_ea;
 
     s.get_header_var().set_http(200, "OK");
     check_status(c->get_status_header(), s);

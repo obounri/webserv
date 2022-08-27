@@ -6,8 +6,9 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # PARTICULAR PURPOSE.
 
 # This program built for i386-apple-darwin11.3.0
+ 
 
-# Make data base, printed on Fri Aug 26 19:06:27 2022
+# Make data base, printed on Sat Aug 27 10:30:22 2022
 
 # Variables
 
@@ -40,15 +41,13 @@ PATH = /usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/munki
 # environment
 LSCOLORS = Gxfxcxdxbxegedabagacad
 # environment
-LaunchInstanceID = DCD2D069-4A0A-4ABB-A9F4-AAE1F70E44AD
-# environment
 ELECTRON_RUN_AS_NODE = 1
-# makefile (from `Makefile', line 12)
-SRC_FILE = main.cpp srcs/server/server.cpp srcs/parsers/parse_config.cpp srcs/sockets/sockets.cpp
+# makefile (from `Makefile', line 14)
+SRC_FILE = main.cpp srcs/server/server.cpp srcs/parsers/parse_config.cpp srcs/sockets/sockets.cpp srcs/client/client.cpp srcs/extra_functions.cpp
 # default
 .FEATURES := target-specific order-only second-expansion else-if archives jobserver check-symlink
 # environment
-SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.jFodZ6DZjv/Listeners
+SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.0jNcYh6hss/Listeners
 # automatic
 %F = $(notdir $%)
 # environment
@@ -81,8 +80,6 @@ MAKE = $(MAKE_COMMAND)
 MAKECMDGOALS := all
 # environment
 SHLVL = 1
-# makefile (from `Makefile', line 17)
-CLIENT = client.cpp
 # makefile (from `Makefile', line 1)
 CC = c++
 # default
@@ -91,7 +88,7 @@ MAKE_VERSION := 3.81
 USER = obounri
 # makefile
 .DEFAULT_GOAL := all
-# makefile (from `Makefile', line 10)
+# makefile (from `Makefile', line 12)
 NAME = webserv
 # environment
 LESS = -R
@@ -116,15 +113,13 @@ MFLAGS = -Rrqp
 # automatic
 *D = $(patsubst %/,%,$(dir $*))
 # environment
-XPC_SERVICE_NAME = com.apple.xpc.launchd.oneshot.0x10000002.Electron
+XPC_SERVICE_NAME = com.microsoft.VSCode.2432
 # automatic
 +D = $(patsubst %/,%,$(dir $+))
 # automatic
 +F = $(notdir $+)
 # environment
 __CF_USER_TEXT_ENCODING = 0x18B69:0:0
-# environment
-COMMAND_MODE = unix2003
 # default
 MAKEFILES := 
 # automatic
@@ -134,25 +129,23 @@ PAGER = less
 # environment
 LC_ALL = C
 # makefile (from `Makefile', line 6)
-HEADER = srcs/server/server.hpp srcs/sockets/sockets.hpp srcs/parsers/parse.hpp
-# environment
-SECURITYSESSIONID = 186a7
+HEADER = srcs/server/server.hpp srcs/sockets/sockets.hpp srcs/parsers/parse.hpp srcs/client/client.hpp srcs/extra.hpp
+# makefile (from `Makefile', line 13)
+NAME_CLIENT = client
 # automatic
 ^F = $(notdir $^)
 # default
 SUFFIXES := 
 # default
 .INCLUDE_DIRS = /usr/local/include
-# makefile (from `Makefile', line 11)
-NAME_CLIENT = client
 # environment
 MAKELEVEL := 0
 # environment
 LANG = C
 # environment
-VSCODE_PID = 1378
+VSCODE_PID = 64462
 # variable set hash-table stats:
-# Load=70/1024=7%, Rehash=0, Collisions=3/109=3%
+# Load=66/1024=6%, Rehash=0, Collisions=1/95=1%
 
 # Pattern-specific Variable Values
 
@@ -160,9 +153,9 @@ VSCODE_PID = 1378
 
 # Directories
 
-# . (device 16777225, inode 4615893): 8 files, no impossibilities.
+# . (device 16777225, inode 4615893): 10 files, no impossibilities.
 
-# 8 files, no impossibilities in 1 directories.
+# 10 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -173,7 +166,7 @@ VSCODE_PID = 1378
 # Not a target:
 srcs/server/server.hpp:
 #  Implicit rule search has been done.
-#  Last modified 2022-08-26 15:53:44
+#  Last modified 2022-08-27 10:28:17
 #  File has been updated.
 #  Successfully updated.
 # variable set hash-table stats:
@@ -202,38 +195,29 @@ all: webserv
 #  Implicit rule search has been done.
 #  File does not exist.
 #  File has been updated.
-#  Needs to be updated (-q is set).
+#  Successfully updated.
 # variable set hash-table stats:
-# Load=0/32=0%, Rehash=0, Collisions=0/10=0%
+# Load=0/32=0%, Rehash=0, Collisions=0/0=0%
 
-webserv: main.cpp srcs/server/server.cpp srcs/parsers/parse_config.cpp srcs/sockets/sockets.cpp client.cpp srcs/server/server.hpp srcs/sockets/sockets.hpp srcs/parsers/parse.hpp
+webserv: main.cpp srcs/server/server.cpp srcs/parsers/parse_config.cpp srcs/sockets/sockets.cpp srcs/client/client.cpp srcs/extra_functions.cpp srcs/server/server.hpp srcs/sockets/sockets.hpp srcs/parsers/parse.hpp srcs/client/client.hpp srcs/extra.hpp
 #  Implicit rule search has not been done.
-#  Implicit/static pattern stem: `'
-#  File does not exist.
+#  Last modified 2022-08-27 10:29:46
 #  File has been updated.
-#  Needs to be updated (-q is set).
-# automatic
-# @ := webserv
-# automatic
-# % := 
-# automatic
-# * := 
-# automatic
-# + := main.cpp srcs/server/server.cpp srcs/parsers/parse_config.cpp srcs/sockets/sockets.cpp client.cpp srcs/server/server.hpp srcs/sockets/sockets.hpp srcs/parsers/parse.hpp
-# automatic
-# | := 
-# automatic
-# < := main.cpp
-# automatic
-# ^ := main.cpp srcs/server/server.cpp srcs/parsers/parse_config.cpp srcs/sockets/sockets.cpp client.cpp srcs/server/server.hpp srcs/sockets/sockets.hpp srcs/parsers/parse.hpp
-# automatic
-# ? := main.cpp srcs/server/server.cpp srcs/parsers/parse_config.cpp srcs/sockets/sockets.cpp client.cpp srcs/server/server.hpp srcs/sockets/sockets.hpp srcs/parsers/parse.hpp
+#  Successfully updated.
 # variable set hash-table stats:
-# Load=8/32=25%, Rehash=0, Collisions=1/18=6%
-#  commands to execute (from `Makefile', line 27):
+# Load=0/32=0%, Rehash=0, Collisions=0/0=0%
+#  commands to execute (from `Makefile', line 31):
 	@$(CC) $(CFLAGS) $(SRC_FILE) -o $(NAME)
-	@$(CC) $(CFLAGS) $(CLIENT) -o $(NAME_CLIENT)
 	
+
+# Not a target:
+srcs/extra.hpp:
+#  Implicit rule search has been done.
+#  Last modified 2022-08-27 10:27:02
+#  File has been updated.
+#  Successfully updated.
+# variable set hash-table stats:
+# Load=0/32=0%, Rehash=0, Collisions=0/0=0%
 
 # Not a target:
 .SUFFIXES:
@@ -244,7 +228,7 @@ webserv: main.cpp srcs/server/server.cpp srcs/parsers/parse_config.cpp srcs/sock
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-08-19 23:12:24
+#  Last modified 2022-08-27 10:29:20
 #  File has been updated.
 #  Successfully updated.
 # variable set hash-table stats:
@@ -253,7 +237,16 @@ Makefile:
 # Not a target:
 main.cpp:
 #  Implicit rule search has been done.
-#  Last modified 2022-08-19 23:12:24
+#  Last modified 2022-08-27 10:27:02
+#  File has been updated.
+#  Successfully updated.
+# variable set hash-table stats:
+# Load=0/32=0%, Rehash=0, Collisions=0/0=0%
+
+# Not a target:
+srcs/extra_functions.cpp:
+#  Implicit rule search has been done.
+#  Last modified 2022-08-27 10:27:02
 #  File has been updated.
 #  Successfully updated.
 # variable set hash-table stats:
@@ -274,6 +267,15 @@ fclean: clean
 #  File has not been updated.
 
 # Not a target:
+srcs/client/client.cpp:
+#  Implicit rule search has been done.
+#  Last modified 2022-08-27 10:27:02
+#  File has been updated.
+#  Successfully updated.
+# variable set hash-table stats:
+# Load=0/32=0%, Rehash=0, Collisions=0/0=0%
+
+# Not a target:
 .DEFAULT:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
@@ -285,9 +287,9 @@ re: fclean all
 #  File has not been updated.
 
 # Not a target:
-client.cpp:
+srcs/client/client.hpp:
 #  Implicit rule search has been done.
-#  Last modified 2022-08-22 16:41:27
+#  Last modified 2022-08-27 10:27:02
 #  File has been updated.
 #  Successfully updated.
 # variable set hash-table stats:
@@ -297,14 +299,13 @@ clean:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  commands to execute (from `Makefile', line 31):
-	@rm -f $(NAME) $(NAME_CLIENT)
+#  commands to execute (from `Makefile', line 35):
+	@rm -f $(NAME)
 	
 
 # Not a target:
 srcs/sockets/sockets.hpp:
 #  Implicit rule search has been done.
- 
 #  Last modified 2022-08-19 23:12:24
 #  File has been updated.
 #  Successfully updated.
@@ -314,14 +315,15 @@ srcs/sockets/sockets.hpp:
 # Not a target:
 srcs/server/server.cpp:
 #  Implicit rule search has been done.
-#  Last modified 2022-08-26 15:52:58
+#  Last modified 2022-08-27 10:27:02
 #  File has been updated.
 #  Successfully updated.
 # variable set hash-table stats:
 # Load=0/32=0%, Rehash=0, Collisions=0/0=0%
 
+ 
 # files hash-table stats:
-# Load=16/1024=2%, Rehash=0, Collisions=4/42=10%
+# Load=19/1024=2%, Rehash=0, Collisions=5/47=11%
 # VPATH Search Paths
 
 # No `vpath' search paths.
@@ -333,6 +335,6 @@ srcs/server/server.cpp:
 # strcache size: total = 4096 / max = 4096 / min = 4096 / avg = 4096
 # strcache free: total = 4087 / max = 4087 / min = 4087 / avg = 4087
 
-# Finished Make data base on Fri Aug 26 19:06:27 2022
+# Finished Make data base on Sat Aug 27 10:30:22 2022
 
  

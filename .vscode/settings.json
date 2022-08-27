@@ -71,6 +71,8 @@
         "numbers": "cpp",
         "ranges": "cpp",
         "map": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "cerrno": "cpp",
+        "__tree": "cpp"
     }
 }

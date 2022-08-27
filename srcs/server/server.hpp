@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include "../client/client.hpp"
 
-#if 0
+#if 1
     #include <sys/event.h>
 #else
     #include "/usr/include/kqueue/sys/event.h"

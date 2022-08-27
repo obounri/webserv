@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   extra_functions.cpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amoujane <amoujane@student.42.fr>          +#+  +:+       +#+        */
+/*   By: obounri <obounri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/19 18:55:17 by amoujane          #+#    #+#             */
-/*   Updated: 2021/05/03 16:33:21 by amoujane         ###   ########.fr       */
+/*   Updated: 2022/08/27 10:40:38 by obounri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -379,4 +379,30 @@ bool check_host(std::string host)
 	if (!is_digits(str) || str.size() == 0)
 		return false;
 	return true;
+}
+
+std::vector<std::string> ft_split(std::string str1, std::string delimiter)
+{
+    std::vector<std::string>    tokens;
+	std::string str(str1);
+	
+	if (str == "")
+		return (tokens);
+    str += delimiter[0];
+    std::string::size_type  start = str.find_first_not_of(delimiter, 0);
+	if (start == std::string::npos)
+		return tokens;
+    std::string::size_type  end = 0;
+    while (1) {
+        end = str.find_first_of(delimiter, start);
+        if (end == std::string::npos) {
+            tokens.push_back(str.substr(start, end - start));
+            break;
+        }
+        std::string s = str.substr(start, end - start);
+        tokens.push_back(s);
+        if ((start = str.find_first_not_of(delimiter, end)) == std::string::npos)
+            break ;
+    }
+    return tokens;
 }
