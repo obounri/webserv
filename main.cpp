@@ -20,7 +20,7 @@ int main() {
 
             // wait for message to finish before sending response
             data = parse_config(/* char *config_path */);
-            Server server(data);
+            MainServer server(data);
 
             signal(SIGINT, &shutdown);
             server.run();

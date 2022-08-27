@@ -1,9 +1,9 @@
-#include "../includes/server.hpp"
-#include "../includes/header.hpp"
-#include "../includes/client.hpp"
+// #include "../includes/server.hpp"
+// #include "../includes/header.hpp"
+#include "srcs/client/client.hpp"
 // add my methods to server and client classes
 
-
+class server;
 
 int ft_isuppercase(std::string val)
 {
@@ -54,7 +54,8 @@ void before_polling_and_pass_to_handle_request() {
 	}
 }
 
-void    handle_request(server &s, client *c, std::multimap<std::string, server> extra) {
+void    handle_request(server &s, client *c, std::multimap<std::string, server> extra)
+{
     std::string server_response;
     std::multimap<std::string, server>::iterator m_ea;
 

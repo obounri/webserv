@@ -69,6 +69,8 @@
         "numeric": "cpp",
         "random": "cpp",
         "numbers": "cpp",
-        "ranges": "cpp"
+        "ranges": "cpp",
+        "map": "cpp",
+        "cinttypes": "cpp"
     }
 }
