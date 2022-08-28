@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: obounri <obounri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/03/19 19:07:18 by amoujane          #+#    #+#             */
-/*   Updated: 2022/08/28 17:22:09 by obounri          ###   ########.fr       */
+/*   Created: 2022/08/28 19:10:18 by obounri           #+#    #+#             */
+/*   Updated: 2022/08/28 19:10:20 by obounri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,6 @@
 #define MAX_BODY 1000000000
 
 std::string     tostring(int n);
-
 
 typedef struct file_log
 {
