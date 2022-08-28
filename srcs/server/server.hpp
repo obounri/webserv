@@ -7,6 +7,11 @@
 #include <strings.h>
 #include <stdlib.h>
 #include "../client/client.hpp"
+#include <sys/types.h>
+// #include <sys/uio.h>
+// #include <dirent.h>
+// #include <sys/wait.h>
+// #include <fstream>
 
 #if 1
     #include <sys/event.h>

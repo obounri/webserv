@@ -73,6 +73,7 @@
         "map": "cpp",
         "cinttypes": "cpp",
         "cerrno": "cpp",
-        "__tree": "cpp"
+        "__tree": "cpp",
+        "list": "cpp"
     }
 }

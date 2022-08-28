@@ -1,7 +1,4 @@
 #include "srcs/server/server.hpp"
-// #include "../includes/header.hpp"
-#include "srcs/client/client.hpp"
-// add my methods to server and client classes
 
 int ft_isuppercase(std::string val)
 {
@@ -38,17 +35,28 @@ bool check_status(std::string str, v_server &s)
 	return false;
 }
 
-void before_polling_and_pass_to_handle_request() {
-    std::multimap<std::string, v_server> extra_map;
-	std::vector<v_server> g_ret; // this is from parser
-	std::map<std::string, v_server> extra; // what is this
+void before_polling_and_pass_to_handle_request(std::vector<v_server> g_ret) {
+	// g_ret is from parser
+
 	std::vector<v_server>::iterator it = g_ret.begin();
+	std::map<std::string, v_server> extra;
+	std::map<std::string, v_server> ::iterator e_it = extra.begin();
+	std::multimap<std::string, v_server> extra_map;
+	std::multimap<std::string, v_server>::iterator m_it;
 
 	while (it != g_ret.end())
 	{
 		extra_map.insert(std::make_pair((*it).get_host() + ":" + (*it).get_port() + "#" + (*it).get_name(), *it));
 		extra.insert(std::make_pair((*it).get_host() + ":" + (*it).get_port(), *it));
 		it++;
+	}
+	g_ret.clear();
+
+	e_it = extra.begin();
+	while (e_it != extra.end())
+	{
+		g_ret.push_back(e_it->second);
+		e_it++;
 	}
 }
 

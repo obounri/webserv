@@ -7,6 +7,7 @@
 #include <map>
 #include "../extra.hpp"
 #include "../client/client.hpp"
+#include <list>
 
 class v_server
 {
@@ -17,10 +18,10 @@ class v_server
 		std::string name;
 		int limit_body;
 		std::string limit_body_s;
-		// std::list<std::string> methods;
-		// std::map<std::string ,location> locations;
+		std::list<std::string> methods;
+		std::map<std::string ,location> locations;
 		std::string root;
-        // headers header_var;
+        headers header_var;
 		std::map<std::string ,std::string> extra_headers;
 		std::map<std::string, std::string> cgi;
 		std::string default_page;
@@ -33,7 +34,7 @@ class v_server
 		// Errors
 		int par_error;
 		int page_error_val;
-		// t_error_messages _err;
+		t_error_messages _err;
 		std::map<std::string, std::string> error_pg;
 
 		// Request
@@ -76,7 +77,7 @@ class v_server
         // Get Methods
 		std::string get_host();
 		std::string get_port();
-		// std::list<std::string> get_methods();
+		std::list<std::string> get_methods();
 		std::string get_string_methods();
 		std::string get_name();
 		std::string get_cgi();
@@ -85,10 +86,10 @@ class v_server
 		std::string get_error_page(int val);
 		std::string get_method();
 		std::string get_req_file(std::string val, std::string met);
-		// std::string get_file(std::map<std::string, location>::iterator loc, std::string val);
-		// std::map<std::string ,location> get_location();
+		std::string get_file(std::map<std::string, location>::iterator loc, std::string val);
+		std::map<std::string ,location> get_location();
 		file_log get_f_log();
-		// headers get_header_var(void);
+		headers get_header_var(void);
 		std::string get_body_s();
 		std::string ft_read_file(std::string val);
 		int get_fd_server();
@@ -101,7 +102,7 @@ class v_server
 		bool check();
         void print_server();
 		char **setup_env();
-		// cgi_env ft_add_other_headers();
+		cgi_env ft_add_other_headers();
 		std::string get_name_headers(std::map<std::string, std::string>::iterator it);
 
 		

@@ -6,7 +6,7 @@
 /*   By: obounri <obounri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/19 18:55:17 by amoujane          #+#    #+#             */
-/*   Updated: 2022/08/27 10:40:38 by obounri          ###   ########.fr       */
+/*   Updated: 2022/08/28 17:21:41 by obounri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -346,13 +346,13 @@ std::string base64_decode(std::string const& encoded_string) {
     return ret;
 }
 
-void ft_bzero(void * s, size_t n)
-{
-  char * c = (char*)s;
-  size_t i;
-  for (i = 0; i < n; ++i)
-    c[i] = '\0';
-}
+// void ft_bzero(void * s, size_t n)
+// {
+//   char * c = (char*)s;
+//   size_t i;
+//   for (i = 0; i < n; ++i)
+//     c[i] = '\0';
+// }
 
 bool is_digits(const std::string &str)
 {

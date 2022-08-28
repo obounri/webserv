@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amoujane <amoujane@student.42.fr>          +#+  +:+       +#+        */
+/*   By: obounri <obounri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/04/22 13:45:45 by amoujane          #+#    #+#             */
-/*   Updated: 2021/05/03 16:33:21 by amoujane         ###   ########.fr       */
+/*   Updated: 2022/08/28 17:21:51 by obounri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -147,25 +147,25 @@ void client::set_method(std::string m)
 	}
 }
 
-void client::ft_read()
-{
-	int readval = 0;
-	char buff[10001];
+// void client::ft_read()
+// {
+// 	int readval = 0;
+// 	char buff[10001];
 
-	ft_bzero(buff, 10001);
-	readval = 1;
-	while (readval > 0)
-	{
-		readval = read(fd, buff, 10000);
-		if (readval > 0)
-			client_request += buff;
-		ft_bzero(buff, 10001);
-	}
-	if (client_request == "\r\n")
-		client_request.clear();
-	if (readval == 0)
-		req_done = 1;
-}
+// 	ft_bzero(buff, 10001);
+// 	readval = 1;
+// 	while (readval > 0)
+// 	{
+// 		readval = read(fd, buff, 10000);
+// 		if (readval > 0)
+// 			client_request += buff;
+// 		ft_bzero(buff, 10001);
+// 	}
+// 	if (client_request == "\r\n")
+// 		client_request.clear();
+// 	if (readval == 0)
+// 		req_done = 1;
+// }
 
 void client::set_client_closed(int val)
 {

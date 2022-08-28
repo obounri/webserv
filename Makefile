@@ -4,21 +4,25 @@ CC = c++
 CFLAGS = -Wall -Wextra -Werror -std=c++98
 
 HEADER = srcs/server/server.hpp \
-		srcs/sockets/sockets.hpp \
 		srcs/parsers/parse.hpp \
 		srcs/client/client.hpp \
+		srcs/sockets/sockets.hpp \
 		srcs/extra.hpp
 
 NAME = webserv
 NAME_CLIENT = client
 SRC_FILE =  main.cpp \
-	srcs/server/server.cpp \
-	srcs/parsers/parse_config.cpp \
+	srcs/extra_functions.cpp \
 	srcs/sockets/sockets.cpp \
+	srcs/server/server.cpp \
+	srcs/server/location.cpp \
+	srcs/server/headers.cpp \
+	srcs/server/cgi_env.cpp \
+	srcs/parsers/parse_config.cpp \
 	srcs/client/client.cpp \
-	srcs/extra_functions.cpp
+	srcs/server/autoindex.cpp \
+	# handle_request.cpp
 
-# CLIENT = client.cpp
 # OBJ_FILE = $(SRC_FILE:.cpp=.o)
 
 all : $(NAME)
@@ -29,7 +33,6 @@ all : $(NAME)
 $(NAME) : $(SRC_FILE) $(CLIENT) $(HEADER)
 # @$(CC) $(CFLAGS) $(SRC_FILE) -lkqueue -lpthread -o $(NAME)
 	@$(CC) $(CFLAGS) $(SRC_FILE) -o $(NAME)
-# @$(CC) $(CFLAGS) $(CLIENT) -o
 
 clean :
 	@rm -f $(NAME)
