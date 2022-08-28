@@ -38,6 +38,7 @@ class MainServer
         std::vector<Socket *>   listeners;
         std::vector<client>     clients;
         int                     keq;
+        // std::vector<v_server>   g_ret;
 
         void    accept_new_connection(unsigned long int fd);
         void    destroy_connection(int fd, int event);

@@ -6,7 +6,7 @@
 /*   By: obounri <obounri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/28 19:10:09 by obounri           #+#    #+#             */
-/*   Updated: 2022/08/28 19:10:14 by obounri          ###   ########.fr       */
+/*   Updated: 2022/08/28 19:31:10 by obounri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ client::client(/* args */)
 	last_req = current_time.tv_sec;
 }
 
-client::client(int val, std::string str)
+client::client(int val, std::string str, int server_fd)
 {
 	int var;
     struct timeval current_time;
@@ -39,6 +39,7 @@ client::client(int val, std::string str)
 	req_done = 0;
 	// write_index = 0;
 	last_req = current_time.tv_sec;
+	var = 1;
 	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &var, sizeof(var)) < 0)
 	{
 		std::cerr << RED << "client setsockopt: failed" << RESET << std::endl;
@@ -50,6 +51,7 @@ client::client(int val, std::string str)
 		run = 1;
 	}
 	ip = str;
+	v_server_fd = server_fd;
 }
 
 client::~client()

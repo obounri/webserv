@@ -6,7 +6,7 @@
 /*   By: obounri <obounri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/28 19:10:00 by obounri           #+#    #+#             */
-/*   Updated: 2022/08/28 19:10:03 by obounri          ###   ########.fr       */
+/*   Updated: 2022/08/28 19:24:33 by obounri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,9 +59,10 @@ public:
     std::string header;
     size_t      body_len;
     size_t         sent;
+    int            v_server_fd;
 
     client(/* args */);
-    client(int fd, std::string str);
+    client(int fd, std::string str, int server_fd);
     ~client();
     void update_time();
     bool still_alive();
