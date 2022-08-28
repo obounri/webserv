@@ -304,7 +304,7 @@ void	check_set_error_page(t_parse &vars, size_t &pos)
 				throw std::runtime_error(unexpected_token(vars.tokens[pos]));
 			int error_page_number = std::stoi(vars.tokens[pos]);
 			std::pair<std::string, std::string> error_page(vars.tokens[pos], t_vec[0]); 
-			std::pair<std::map<std::string , std::string>::iterator, bool> exist = vars.tmp_serv.set_error_pages(error_page);  
+			std::pair<std::map<std::string , std::string>::iterator, bool> exist = vars.tmp_serv.set_error_page(error_page);  
 			if (!exist.second)
 				throw std::runtime_error(duplicate_key(vars.line));
 			vars.server_state.error_page = 2;
@@ -319,7 +319,7 @@ void	check_set_error_page(t_parse &vars, size_t &pos)
 				throw std::runtime_error(unexpected_token(vars.tokens[pos]));
 		// int error_page_number = std::stoi(vars.tokens[pos]);
 		std::pair<std::string, std::string> error_page(vars.tokens[pos], vars.tokens[pos + 1]); 
-		std::pair<std::map<std::string , std::string>::iterator, bool> exist = vars.tmp_serv.set_error_pages(error_page);
+		std::pair<std::map<std::string , std::string>::iterator, bool> exist = vars.tmp_serv.set_error_page(error_page);
 		if (!exist.second)
 			throw std::runtime_error(duplicate_key(vars.line));
 		vars.server_state.error_page = 2;
@@ -403,7 +403,7 @@ void	server_block(t_parse &vars, config &configs)
 		else if (!vars.tokens[pos].compare("host"))
 			check_set_host(vars, pos);
 		else if (!vars.tokens[pos].compare("server_name"))
-			server_name(vars, pos);
+			check_set_server_name(vars, pos);
 		else if (!vars.tokens[pos].compare("client_max_body_size"))
 			check_set_client_max_body_size(vars, pos);
 		else if (!vars.tokens[pos].compare("root"))
