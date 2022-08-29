@@ -17,7 +17,9 @@ int main() {
                 // init server
                 // wait for connection
 
-            MainServer server; // request now has no header / header vars are set somewhere while reading 3nd jimi look at that
+            MainServer server;
+            // header vars are set somewhere while reading 3nd jimi look at that Transfer-Encoding header in request done
+            // real  Transfer-Encoding scenario to check
 
             std::string pp[3] = { "1010", "2020", "3030"};
 

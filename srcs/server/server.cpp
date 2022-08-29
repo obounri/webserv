@@ -59,22 +59,27 @@ void    MainServer::accept_new_connection(unsigned long int fd)
     std::cout << ntohs(their_addr.sin_port) << std::endl << std::endl;
 }
 
-void    MainServer::destroy_connection(int fd, int event)
+void    MainServer::destroy_connection(client *c, int event)
 {
     struct kevent evSet;
 
-    std::cout << "client " << fd << " disconnected.." << std::endl << std::endl;
-    EV_SET(&evSet, fd, event, EV_DELETE, 0, 0, NULL);
+    std::cout << "client " << c->fd << " disconnected.." << std::endl << std::endl;
+    EV_SET(&evSet, c->fd, event, EV_DELETE, 0, 0, NULL);
     kevent(keq, &evSet, 1, NULL, 0, NULL);
-    close(fd);
+	for (std::vector<client>::iterator it = clients.begin(); it != clients.end(); it++) {
+		if (it->fd == c->fd) {
+			clients.erase(it);
+    		close(c->fd);
+			return ;
+		}
+	}
 }
 
 v_server& MainServer::get_client_server(unsigned long int fd) {
-	// std::vector<v_server>	vservers; // this one will be in my class get_v_servers();
 	std::vector<v_server>::iterator	it = myvs.begin();
 
 	for (; it != myvs.end(); it++)
-		if (it->get_fd_server() == fd) // server fd is not set
+		if (it->get_fd_server() == fd)
 			return *it;
 	return *it;
 }
@@ -93,24 +98,29 @@ void    MainServer::recv_request(client *c)
     }
     else {
         std::cout << "reading failed.." << std::endl << std::endl;
-        destroy_connection(c->fd, EVFILT_READ);
+        destroy_connection(c, EVFILT_READ);
         return ;
     }
     if ((pos = c->client_request.find("\r\n\r\n")) != std::string::npos) {
         if (c->header.empty()) {
-            c->header = c->client_request.substr(0, pos);
-            c->client_request.erase(0, pos + 4);
+            c->header = c->client_request.substr(0, pos+4);
             c->body_len = 0;
-            if ((pos = c->header.find("Content-Length: ")) != std::string::npos) {
+            c->chunked = 0;
+			if (c->header.find("Transfer-Encoding: chunked") != std::string::npos)
+				c->chunked = 1;
+            else if ((pos = c->header.find("Content-Length: ")) != std::string::npos) {
 				tmp = c->header;
 				tmp.erase(0, pos + 16);
 				c->body_len = atoi(tmp.substr(0, tmp.find("\r\n")).c_str());
 			}
         }
     }
-    if (!c->header.empty() && (c->body_len) == c->client_request.length()) {
-        std::cout << "\ncompleted request from fd " << c->fd << std::endl << "HEADER:\n" << c->header << std::endl << "BODY\n" << c->client_request << std::endl;
-		
+    if (!c->header.empty() && ((c->chunked == 0 && c->body_len == c->client_request.length() - c->header.length()) || (c->chunked == 1 && c->client_request.find("\r\n0\r\n\r\n") != std::string::npos))) {
+		c->client_body = c->client_request.substr(c->header.length(), c->body_len);
+		if (c->chunked == 1)
+			c->ft_unchunck_body();
+        std::cout << "\ncompleted request from fd " << c->fd << std::endl << c->client_request;
+
 		std::multimap<std::string, v_server> extra;
         handle_request(get_client_server(c->v_server_fd), c, extra);
         
@@ -137,12 +147,14 @@ void    MainServer::send_request(client *c) {
     }
     else {
         std::cout << "sending failed.." << std::endl << std::endl;
-        destroy_connection(c->fd, EVFILT_WRITE);
+        destroy_connection(c, EVFILT_WRITE);
         return ;
     }
     std::cout << std::endl << c->sent << std::endl;
     if (c->sent == c->client_response.length()) {
-        std::cout << "\nSent full request" << std::endl;
+        std::cout << "\nSent full response" << std::endl;
+		c->client_body.clear();
+		c->client_response.clear();
         EV_SET(&evSet, c->fd, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
         kevent(keq, &evSet, 1, NULL, 0, NULL);
         EV_SET(&evSet, c->fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, c);
@@ -162,7 +174,7 @@ void MainServer::run() {
             if (is_listener(evList[i].ident))
                 accept_new_connection(evList[i].ident);
             else if (evList[i].flags & EV_EOF)
-                destroy_connection(evList[i].ident, EVFILT_READ);
+                destroy_connection((client *)evList[i].udata, EVFILT_READ);
             else if (evList[i].filter == EVFILT_READ)
                 recv_request((client *)evList[i].udata);
             else if (evList[i].filter == EVFILT_WRITE)

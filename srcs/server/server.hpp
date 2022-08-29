@@ -28,7 +28,7 @@ class MainServer
         // std::vector<v_server>   g_ret; is now myvs for testing
 
         void    accept_new_connection(unsigned long int fd);
-        void    destroy_connection(int fd, int event);
+        void    destroy_connection(client *c, int event);
         void    recv_request(client *c);
         void    handle_request(v_server &s, client *c, std::multimap<std::string, v_server> extra);
         void    send_request(client *c);

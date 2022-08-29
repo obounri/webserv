@@ -6,7 +6,7 @@
 /*   By: obounri <obounri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/28 19:10:09 by obounri           #+#    #+#             */
-/*   Updated: 2022/08/28 19:31:10 by obounri          ###   ########.fr       */
+/*   Updated: 2022/08/29 18:45:32 by obounri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -184,44 +184,44 @@ std::string client::get_response()
 	return (client_response);
 }
 
-int client::request_done()
-{
-	std::string ret;
-	std::string num;
-	int value;
+// int client::request_done()
+// {
+// 	std::string ret;
+// 	std::string num;
+// 	int value;
 	
-	if (req_done == 1)
-		return (2);
-	if (client_request.find("\r\n\r\n") != std::string::npos)
-	{
-		if (client_request.find("\r\n\r\n") + 4 > client_request.size())
-			return (0);
-		client_body = &client_request[client_request.find("\r\n\r\n") + 4];
-		if (client_request.find("Content-Length: ") != std::string::npos && client_request.find("Transfer-Encoding: chunked") == std::string::npos)
-		{
-			num = &client_request[client_request.find("Content-Length: ") + 16];
-			value = ft_atoi(num.c_str());
-			if ((int)client_body.size() >= value)
-			{
-				client_body.resize(value);
-				client_request = client_request.substr(0, client_request.find("\r\n\r\n"));
-				return (1);
-			}
-		}
-		else if (client_request.find("Transfer-Encoding: chunked") != std::string::npos)
-		{
-			if (client_request.find("\r\n0\r\n") != std::string::npos)
-			{
-				client_request = client_request.substr(0, client_request.find("\r\n\r\n"));
-				ft_unchunck_body();
-				return (1);
-			}
-		}
-		else
-			return (1);
-	}
-	return (0);
-}
+// 	if (req_done == 1)
+// 		return (2);
+// 	if (client_request.find("\r\n\r\n") != std::string::npos)
+// 	{
+// 		if (client_request.find("\r\n\r\n") + 4 > client_request.size())
+// 			return (0);
+// 		client_body = &client_request[client_request.find("\r\n\r\n") + 4];
+// 		if (client_request.find("Content-Length: ") != std::string::npos && client_request.find("Transfer-Encoding: chunked") == std::string::npos)
+// 		{
+// 			num = &client_request[client_request.find("Content-Length: ") + 16];
+// 			value = ft_atoi(num.c_str());
+// 			if ((int)client_body.size() >= value)
+// 			{
+// 				client_body.resize(value);
+// 				client_request = client_request.substr(0, client_request.find("\r\n\r\n"));
+// 				return (1);
+// 			}
+// 		}
+// 		else if (client_request.find("Transfer-Encoding: chunked") != std::string::npos)
+// 		{
+// 			if (client_request.find("\r\n0\r\n") != std::string::npos)
+// 			{
+// 				client_request = client_request.substr(0, client_request.find("\r\n\r\n"));
+// 				ft_unchunck_body();
+// 				return (1);
+// 			}
+// 		}
+// 		else
+// 			return (1);
+// 	}
+// 	return (0);
+// }
 
 // int client::ft_write()
 // {

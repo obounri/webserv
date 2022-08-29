@@ -6,7 +6,7 @@
 /*   By: obounri <obounri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/28 19:10:00 by obounri           #+#    #+#             */
-/*   Updated: 2022/08/28 19:24:33 by obounri          ###   ########.fr       */
+/*   Updated: 2022/08/29 19:11:34 by obounri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,16 +50,17 @@ private:
     time_t last_req;
     std::string ip;
     int req_tab[7];
-    std::string client_body;
 public:
     int fd;
     std::string client_request;
     std::string client_response;
+    std::string client_body;
     char        recBuffer[MAX_IO_SIZE];
     std::string header;
     size_t      body_len;
     size_t         sent;
     int            v_server_fd;
+    int            chunked;
 
     client(/* args */);
     client(int fd, std::string str, int server_fd);
@@ -70,8 +71,8 @@ public:
     void set_fd(int fd);
     void set_ip(std::string str);
     std::string get_ip();
-    void ft_read();
-    int ft_write();
+    // void ft_read();
+    // int ft_write();
     int request_done();
     int client_closed();
     void ft_unchunck_body();
