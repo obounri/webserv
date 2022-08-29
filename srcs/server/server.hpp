@@ -19,35 +19,26 @@
     #include "/usr/include/kqueue/sys/event.h"
 #endif
 
-// typedef struct s_client
-// {
-//     int         fd;
-
-//     std::string client_request;
-//     // int         rec;
-
-//     // Respone res;
-//     std::string client_response;
-
-//     s_client(int _fd, std::string _ip, int _port):fd(_fd) {} ;
-// } client;
-
 class MainServer
 {
     private:
-        std::vector<Socket *>   listeners;
+        // std::vector<Socket *>   listeners; // rm
         std::vector<client>     clients;
         int                     keq;
-        // std::vector<v_server>   g_ret;
+        // std::vector<v_server>   g_ret; is now myvs for testing
 
         void    accept_new_connection(unsigned long int fd);
         void    destroy_connection(int fd, int event);
         void    recv_request(client *c);
+        void    handle_request(v_server &s, client *c, std::multimap<std::string, v_server> extra);
         void    send_request(client *c);
 
-        int     is_listener(unsigned long int fd);
+        int         is_listener(unsigned long int fd);
+        v_server&   get_client_server(unsigned long int fd);
     public:
-        MainServer(config data);
+        std::vector<v_server>   myvs; // init to test
+        MainServer();
+        void init_server();
         ~MainServer();
 
         void            run();

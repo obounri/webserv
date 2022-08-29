@@ -16,11 +16,16 @@ int main() {
                 // parse config file
                 // init server
                 // wait for connection
-            config data;
 
-            // wait for message to finish before sending response
-            data = parse_config(/* char *config_path */);
-            MainServer server(data);
+            MainServer server; // request now has no header / header vars are set somewhere while reading 3nd jimi look at that
+
+            std::string pp[3] = { "1010", "2020", "3030"};
+
+            server.myvs.push_back(v_server());
+            server.myvs[0].set_port(pp[0]);
+            // server.myvs[0].
+
+            server.init_server();
 
             signal(SIGINT, &shutdown);
             server.run();

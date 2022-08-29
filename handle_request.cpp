@@ -60,7 +60,7 @@ void before_polling_and_pass_to_handle_request(std::vector<v_server> g_ret) {
 	}
 }
 
-void    handle_request(v_server &s, client *c, std::multimap<std::string, v_server> extra)
+void    MainServer::handle_request(v_server &s, client *c, std::multimap<std::string, v_server> extra)
 {
     std::string server_response;
     std::multimap<std::string, v_server>::iterator m_ea;
@@ -93,6 +93,6 @@ void    handle_request(v_server &s, client *c, std::multimap<std::string, v_serv
     else
         server_response = s.run_error(405);
     s.set_pg_val(0);
-    c->set_write_index(0);
+    // c->set_write_index(0);
     c->set_response(server_response);
 }

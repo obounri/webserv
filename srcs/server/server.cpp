@@ -2,25 +2,33 @@
 
 // main server
 
-MainServer::MainServer(config data)
+MainServer::MainServer() {
+}
+
+void	MainServer::init_server()
 {
     struct kevent evSet;
 
     std::cout << "constructing server.." << std::endl;
     if ((keq = kqueue()) == -1)
         throw std::runtime_error("kqueue failed..");
-    for (int i = 0; i < data.n_v_servers; i++) {
-        listeners.push_back(new Socket(data.domain, data.type, data.interface, atoi(data.vservers[i].get_port().c_str()), data.backlog));
-        EV_SET(&evSet, listeners[i]->get_socket(), EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+    for (std::vector<v_server>::iterator it = myvs.begin(); it != myvs.end(); it++) {
+        // listeners.push_back(new Socket(data.domain, data.type, data.interface, atoi(data.vservers[i].get_port().c_str()), data.backlog));
+		it->listener = new Socket(AF_INET, SOCK_STREAM, INADDR_ANY, atoi(it->get_port().c_str()), 10);
+        EV_SET(&evSet, it->get_fd_server(), EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
         kevent(keq, &evSet, 1, NULL, 0, NULL);
     }
 }
 
 int     MainServer::is_listener(unsigned long int fd)
 {
-    for (unsigned int i = 0; i < listeners.size(); i++)
-        if (listeners[i]->get_socket() == fd)
-            return (1);
+    // for (unsigned int i = 0; i < listeners.size(); i++)
+    //     if (listeners[i]->get_socket() == fd)
+    //         return (1);
+	for (std::vector<v_server>::iterator it = myvs.begin(); it != myvs.end(); it++)
+		if (it->get_fd_server() == fd)
+			return 1;
+	// listeners.push_back(new Socket(data.domain, data.type, data.interface, atoi(data.vservers[i].get_port().c_str()), data.backlog));
     return (0);
 }
 
@@ -28,8 +36,10 @@ MainServer::~MainServer()
 {
     std::cout << "server destructor called.." << std::endl;
     close(keq);
-    for (unsigned int i = 0; i < listeners.size(); i++)
-        delete listeners[i];
+    // for (unsigned int i = 0; i < listeners.size(); i++)
+    //     delete listeners[i];
+	for (std::vector<v_server>::iterator it = myvs.begin(); it != myvs.end(); it++)
+		delete it->listener;
     std::cout << std::endl << "server shut down, take care :).." << std::endl;
 }
 
@@ -59,9 +69,15 @@ void    MainServer::destroy_connection(int fd, int event)
     close(fd);
 }
 
-// v_server& get_client_server(int fd) {
+v_server& MainServer::get_client_server(unsigned long int fd) {
+	// std::vector<v_server>	vservers; // this one will be in my class get_v_servers();
+	std::vector<v_server>::iterator	it = myvs.begin();
 
-// }
+	for (; it != myvs.end(); it++)
+		if (it->get_fd_server() == fd) // server fd is not set
+			return *it;
+	return *it;
+}
 
 void    MainServer::recv_request(client *c)
 {
@@ -94,10 +110,11 @@ void    MainServer::recv_request(client *c)
     }
     if (!c->header.empty() && (c->body_len) == c->client_request.length()) {
         std::cout << "\ncompleted request from fd " << c->fd << std::endl << "HEADER:\n" << c->header << std::endl << "BODY\n" << c->client_request << std::endl;
-        // bind client with its server to pass to handle request
-        // v_server& get_client_server(int c->fd);
-        // handle_requests(client's_server, extra?);
-        c->client_response = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Length: 3280\r\n\r\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Sed velit velit, convallis vel hendrerit ut, facilisis scelerisque lorem. Praesent quis lectus eu lorem tincidunt iaculis nec ac diam. Quisque scelerisque felis felis, nec varius ipsum placerat nec. Donec faucibus tellus a sollicitudin pretium. In ornare aliquet pretium. Donec vestibulum ut enim id mattis. Morbi ullamcorper auctor leo, a ultricies nunc maximus sit amet. Donec facilisis orci tortor, cursus tincidunt sem sodales tristique. Nam lacinia, mi ut aliquam varius, risus massa scelerisque tortor, id tristique ipsum dui placerat enim. Mauris vehicula commodo ex vel varius. Sed molestie ultricies sodales. Phasellus quam sem, sagittis non ornare et, posuere sit amet ligula. Vivamus dignissim mi sit amet sapien suscipit, sed sollicitudin metus faucibus. Nullam vitae ultricies ante. Quisque faucibus mi sit amet ligula suscipit tincidunt. Nunc sed augue pharetra, efficitur velit blandit, interdum est.\nSed suscipit viverra erat, sollicitudin fringilla orci tempus et. Vestibulum pellentesque nulla sed scelerisque venenatis. Cras augue velit, dapibus vel luctus sit amet, interdum ut erat. Praesent ac eros at tellus egestas luctus vitae vel nisi. Aliquam erat volutpat. Fusce felis neque, dignissim ac commodo non, euismod in est. Mauris maximus ac purus vel convallis. Sed efficitur vitae mauris ut tristique. Nam mi augue, elementum quis mi et, mattis lacinia leo. Etiam tempor hendrerit enim vel venenatis. Nullam molestie metus et sem ultricies elementum.\nPellentesque eget tortor vel neque rutrum sodales. Morbi vitae cursus nibh. Curabitur quis magna eu lorem venenatis tempus non non leo. Duis eget suscipit neque. Etiam finibus nunc massa, vel venenatis elit imperdiet fringilla. Pellentesque non quam vitae arcu pretium ullamcorper eu at metus. Donec euismod interdum sem, a volutpat nulla molestie quis. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed rhoncus turpis sit amet tellus aliquam, vel fringilla odio eleifend. Ut non ultrices mi. Maecenas diam augue, semper cursus ultricies at, hendrerit ac mi.\nSed elementum faucibus arcu, sed consequat metus luctus sed. Ut non metus risus. Nam eget blandit diam, at ultricies elit. Sed eget tortor vel erat varius semper eget sit amet neque. Vivamus dignissim maximus nulla, nec semper sapien luctus at. Curabitur ac lorem id odio fringilla sollicitudin. Nullam lobortis varius neque, eu feugiat purus faucibus quis. Donec scelerisque elit ut lacus ullamcorper, quis accumsan sapien elementum. Praesent interdum et ligula lacinia accumsan. Sed ligula enim, cursus ut erat ac, tristique ullamcorper erat.\nQuisque dictum sodales tortor in pulvinar. Sed malesuada sollicitudin felis. Vestibulum hendrerit mi metus, vel dictum diam fermentum vel. Morbi vestibulum sodales sapien, nec sagittis odio porttitor sit amet. Mauris at urna ultricies, tempus magna ac, consequat justo. Etiam suscipit leo nisi, eget bibendum dolor elementum a. Vestibulum id orci massa. Ut ligula leo, malesuada in imperdiet vehicula, facilisis laoreet erat. Aenean hendrerit quis arcu eget luctus. Nullam ornare urna consequat ligula ultricies pharetra. Nulla aliquet dictum tortor ac sodales. Quisque nec ipsum leo. Ut varius enim quis accumsan fermentum.\r\n\r\n";
+		
+		std::multimap<std::string, v_server> extra;
+        handle_request(get_client_server(c->v_server_fd), c, extra);
+        
+		// c->client_response = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Length: 3280\r\n\r\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Sed velit velit, convallis vel hendrerit ut, facilisis scelerisque lorem. Praesent quis lectus eu lorem tincidunt iaculis nec ac diam. Quisque scelerisque felis felis, nec varius ipsum placerat nec. Donec faucibus tellus a sollicitudin pretium. In ornare aliquet pretium. Donec vestibulum ut enim id mattis. Morbi ullamcorper auctor leo, a ultricies nunc maximus sit amet. Donec facilisis orci tortor, cursus tincidunt sem sodales tristique. Nam lacinia, mi ut aliquam varius, risus massa scelerisque tortor, id tristique ipsum dui placerat enim. Mauris vehicula commodo ex vel varius. Sed molestie ultricies sodales. Phasellus quam sem, sagittis non ornare et, posuere sit amet ligula. Vivamus dignissim mi sit amet sapien suscipit, sed sollicitudin metus faucibus. Nullam vitae ultricies ante. Quisque faucibus mi sit amet ligula suscipit tincidunt. Nunc sed augue pharetra, efficitur velit blandit, interdum est.\nSed suscipit viverra erat, sollicitudin fringilla orci tempus et. Vestibulum pellentesque nulla sed scelerisque venenatis. Cras augue velit, dapibus vel luctus sit amet, interdum ut erat. Praesent ac eros at tellus egestas luctus vitae vel nisi. Aliquam erat volutpat. Fusce felis neque, dignissim ac commodo non, euismod in est. Mauris maximus ac purus vel convallis. Sed efficitur vitae mauris ut tristique. Nam mi augue, elementum quis mi et, mattis lacinia leo. Etiam tempor hendrerit enim vel venenatis. Nullam molestie metus et sem ultricies elementum.\nPellentesque eget tortor vel neque rutrum sodales. Morbi vitae cursus nibh. Curaitur quis magna eu lorem venenatis tempus non non leo. Duis eget suscipit neque. Etiam finibus nunc massa, vel venenatis elit imperdiet fringilla. Pellentesque non quam vitae arcu pretium ullamcorper eu at metus. Donec euismod interdum sem, a volutpat nulla molestie quis. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed rhoncus turpis sit amet tellus aliquam, vel fringilla odio eleifend. Ut non ultrices mi. Maecenas diam augue, semper cursus ultricies at, hendrerit ac mi.\nSed elementum faucibus arcu, sed consequat metus luctus sed. Ut non metus risus. Nam eget blandit diam, at ultricies elit. Sed eget tortor vel erat varius semper eget sit amet neque. Vivamus dignissim maximus nulla, nec semper sapien luctus at. Curabitur ac lorem id odio fringilla sollicitudin. Nullam lobortis varius neque, eu feugiat purus faucibus quis. Donec scelerisque elit ut lacus ullamcorper, quis accumsan sapien elementum. Praesent interdum et ligula lacinia accumsan. Sed ligula enim, cursus ut erat ac, tristique ullamcorper erat.\nQuisque dictum sodales tortor in pulvinar. Sed malesuada sollicitudin felis. Vestibulum hendrerit mi metus, vel dictum diam fermentum vel. Morbi vestibulum sodales sapien, nec sagittis odio porttitor sit amet. Mauris at urna ultricies, tempus magna ac, consequat justo. Etiam suscipit leo nisi, eget bibendum dolor elementum a. Vestibulum id orci massa. Ut ligula leo, malesuada in imperdiet vehicula, facilisis laoreet erat. Aenean hendrerit quis arcu eget luctus. Nullam ornare urna consequat ligula ultricies pharetra. Nulla aliquet dictum tortor ac sodales. Quisque nec ipsum leo. Ut varius enim quis accumsan fermentum.\r\n\r\n\r\n";
         c->client_request.clear();
         c->header.clear();
         c->sent = 0;
@@ -483,10 +500,11 @@ void v_server::set_header(char *str){
 		header_var.push("Allow", get_string_methods());
 };
 
-int v_server::get_fd_server()
+unsigned long int v_server::get_fd_server()
 {
-	return (this->server_fd);
+	return (this->listener->get_socket());
 };
+
 int v_server::get_pg_error(){
 	return (this->page_error_val);
 };
@@ -535,51 +553,51 @@ int v_server::ft_access()
 	return (0);
 }
 
-void v_server::run_server()
-{
-	int var = 1;
-	int bind_ret = 0;
-	int val = 1;
+// void v_server::run_server()
+// {
+// 	int var = 1;
+// 	int bind_ret = 0;
+// 	int val = 1;
 
-	std::string full_req;
+// 	std::string full_req;
 
-	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) 
-	{ 
-		std::cerr << RED << "Socket Faild: " << strerror(errno) << RESET << "\n";
-		exit(-1);
-	}
-	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &var, sizeof(var)))
-	{ 
-		std::cerr << RED << "setsockopt Faild: " << strerror(errno) << RESET << "\n";
-		exit(-1);
-	}
-	address.sin_family = AF_INET;
-	if (host == "localhost" || host.size() == 0)
-		host = "0.0.0.0";
-	address.sin_addr.s_addr = inet_addr(host.c_str());
-	address.sin_port = htons(value_port());
-	while (val) 
-	{
-		if ((bind_ret = bind(server_fd, (struct sockaddr *)&address, sizeof(address))) == -1)
-		{	
-			std::cerr << BLACK << "Bind Faild " << "(" << value_port() << "): " << strerror(errno) << RESET <<"\n";
-			val++;
-			if (val > 3)
-				break;;
-		}
-		else
-			break;
-	}
-	if (listen(server_fd, SOMAXCONN) < 0) 
-	{ 
-		std::cerr << RED << "Listen Faild: " << strerror(errno) << RESET << "\n";
-		exit(-1);
-	}
-	if (val == 1)
-		std::cerr << GREEN << "Server: " << host << ":" << port << " Running..."<< RESET << "\n";
-	else
-		std::cerr << RED << "Server: " << host << ":" << port <<  " Couldn't Run..."<< RESET << "\n";
-}
+// 	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) 
+// 	{ 
+// 		std::cerr << RED << "Socket Faild: " << strerror(errno) << RESET << "\n";
+// 		exit(-1);
+// 	}
+// 	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &var, sizeof(var)))
+// 	{ 
+// 		std::cerr << RED << "setsockopt Faild: " << strerror(errno) << RESET << "\n";
+// 		exit(-1);
+// 	}
+// 	address.sin_family = AF_INET;
+// 	if (host == "localhost" || host.size() == 0)
+// 		host = "0.0.0.0";
+// 	address.sin_addr.s_addr = inet_addr(host.c_str());
+// 	address.sin_port = htons(value_port());
+// 	while (val) 
+// 	{
+// 		if ((bind_ret = bind(server_fd, (struct sockaddr *)&address, sizeof(address))) == -1)
+// 		{	
+// 			std::cerr << BLACK << "Bind Faild " << "(" << value_port() << "): " << strerror(errno) << RESET <<"\n";
+// 			val++;
+// 			if (val > 3)
+// 				break;;
+// 		}
+// 		else
+// 			break;
+// 	}
+// 	if (listen(server_fd, SOMAXCONN) < 0) 
+// 	{ 
+// 		std::cerr << RED << "Listen Faild: " << strerror(errno) << RESET << "\n";
+// 		exit(-1);
+// 	}
+// 	if (val == 1)
+// 		std::cerr << GREEN << "Server: " << host << ":" << port << " Running..."<< RESET << "\n";
+// 	else
+// 		std::cerr << RED << "Server: " << host << ":" << port <<  " Couldn't Run..."<< RESET << "\n";
+// }
 
 bool v_server::ft_allowed()
 {

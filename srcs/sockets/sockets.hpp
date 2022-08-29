@@ -10,13 +10,13 @@
 class Socket
 {
 private:
-    int sockfd;
+    unsigned long int sockfd;
     struct sockaddr_in address;
 
 public:
-    // Socket();
+    Socket();
     Socket(int domain, int type, int interface, int port, int backlog);
-    unsigned int get_socket() { return sockfd; };
+    unsigned long int get_socket() { return sockfd; };
     ~Socket();
 };
 

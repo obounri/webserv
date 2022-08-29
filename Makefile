@@ -21,7 +21,7 @@ SRC_FILE =  main.cpp \
 	srcs/parsers/parse_config.cpp \
 	srcs/client/client.cpp \
 	srcs/server/autoindex.cpp \
-	# handle_request.cpp
+	handle_request.cpp
 
 # OBJ_FILE = $(SRC_FILE:.cpp=.o)
 

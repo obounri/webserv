@@ -8,6 +8,7 @@
 #include "../extra.hpp"
 #include "../client/client.hpp"
 #include <list>
+#include "../sockets/sockets.hpp"
 
 class v_server
 {
@@ -28,7 +29,7 @@ class v_server
 		std::string file_open;
 
 		// Server
-		int server_fd;
+		// int server_fd;
 		struct sockaddr_in address;
 
 		// Errors
@@ -48,10 +49,11 @@ class v_server
 
 		// Clients
 		std::string client_ip;
-		std::vector<client*> clients;
+		// std::vector<client*> clients;
 
 		
 	public:
+		Socket	*listener;
 		v_server(/* args */);
 		~v_server();
 
@@ -92,7 +94,7 @@ class v_server
 		headers get_header_var(void);
 		std::string get_body_s();
 		std::string ft_read_file(std::string val);
-		int get_fd_server();
+		unsigned long int get_fd_server();
 		struct sockaddr_in get_server_address();
 		int get_limit();
         int value_port();

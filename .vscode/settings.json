@@ -74,6 +74,7 @@
         "cinttypes": "cpp",
         "cerrno": "cpp",
         "__tree": "cpp",
-        "list": "cpp"
+        "list": "cpp",
+        "iomanip": "cpp"
     }
 }
