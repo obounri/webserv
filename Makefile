@@ -6,7 +6,7 @@ HEADER = srcs/parsers/parse_config.hpp
 # CFLAGS = -no-pie -Wall -Wextra -Werror -std=c++98
 CFLAGS = -Wall -Wextra -Werror -std=c++98
 
-HEADER = srcs/server/server.hpp \
+HEADER = srcs/parsers/parse_config.hpp \
 		srcs/parsers/location.hpp\
 		srcs/sockets/sockets.hpp 
 
@@ -19,10 +19,8 @@ SRC_FILE =  main.cpp \
 			srcs/parsers/utils.cpp \
 			srcs/parsers/Syntax_errors.cpp \
 			srcs/parsers/location.cpp \
-			srcs/server/server.cpp \
-			srcs/sockets/sockets.cpp 
+			srcs/parsers/v_server.cpp \
 
-CLIENT = client.cpp
 # OBJ_FILE = $(SRC_FILE:.cpp=.o)
 
 all : $(NAME)
@@ -34,7 +32,7 @@ $(NAME) : $(SRC_FILE) $(HEADER)
 	@$(CC) $(CFLAGS) $(SRC_FILE) -o $(NAME)
 
 clean :
-	@rm -f $(NAME) $(NAME_CLIENT)
+	@rm -f $(NAME)
 
 fclean : clean
 

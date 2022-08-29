@@ -74,3 +74,14 @@ void	comment_check(std::string& line)
 		line = line.erase(found);
 	return ;
 }
+
+std::string trim_tok( std::string &str, std::string left_trimer, std::string right_trimer)
+{
+    size_t end = str.find_last_not_of(right_trimer);
+	    if ( end != std::string::npos )
+        str.resize( end + 1 );
+    size_t start = str.find_first_not_of(left_trimer);
+    if ( start != std::string::npos )
+        str = str.substr( start );
+    return std::move( str );
+}

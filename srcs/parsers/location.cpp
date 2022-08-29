@@ -38,83 +38,50 @@ void								location::set_index(int index) { this->index = index; }
 
 void 								location::set_method(std::string &method) { this->allowed.push_back(method); }
 
-void 								location::set_limit_body_size(int &value) { this->limit_client_body = value; }
+void 								location::set_limit_body_size(int &limit) { this->limit_client_body = limit; }
 
 void 								location::set_access(std::string &_access) { this->_access = _access; }
 
 
-// SECTION - Functions for Location Block
-
-void	check_set_location_index(t_parse &vars, size_t &pos)
+void								location::clear()
 {
-    if (!vars.location_state.index)
-	{
-		vars.location_state.index = 1;
-		pos++;
-	}
-	size_t found = semicolon_check(vars, pos);
-	if (found == 0 || vars.location_state.index == 2)
-		throw std::runtime_error(Syntax_error(vars.line));
-	else if (found == 1)
-	{
-		if ((vars.tokens.size() - pos) != 1)
-			throw std::runtime_error(Invalid_arguments(vars.line));
-		std::vector<std::string> t_vec = split_line(vars.tokens[pos], ";");
-		if (!t_vec.empty())
-		{
-			vars.tmp_location.set_default(t_vec[0]);
-			vars.location_state.index = 2;
-			pos++;
-		}
-	}
-	else if (found == 2)
-	{
-		if ((vars.tokens.size() - pos) != 2)
-			throw std::runtime_error(Invalid_arguments(vars.line));
-		vars.tmp_location.set_default(vars.tokens[pos]);
-		vars.location_state.index = 2;
-		pos = pos + 2;
-	}
+	this->path.clear();
+	this->root.clear();
+	this->default_file.clear();
+	this->allowed.clear();
+	this->body_s.clear();
+	this->_access.clear();
+	this->index = 0;
+	this->limit_client_body = 0;
 }
 
-void    check_set_autoindex(t_parse &vars, size_t &pos)
+
+void location::print_location()
 {
-    if (!vars.location_state.autoindex)
-    {
-        vars.location_state.autoindex = 1;
-        pos++;
-    }
-    size_t found = semicolon_check(vars, pos);
-    if (found == 0 || vars.location_state.autoindex == 2)
-        throw std::runtime_error(Syntax_error(vars.line));
-    else if (found == 1)
-    {
-        if ((vars.tokens.size()- 1) != 1)
-            throw std::runtime_error(Invalid_arguments(vars.line));
-        std::vector<std::string> t_vec = split_line(vars.tokens[pos], ";");
-        if (!t_vec.empty())
-        {
-            if (t_vec[0].compare("on"))
-                vars.tmp_location.set_index(1);
-            else if (t_vec[0].compare("off"))
-                vars.tmp_location.set_index(0);
-            else
-                throw std::runtime_error(unexpected_token(vars.tokens[pos]));
-            vars.location_state.autoindex = 2;
-            pos++;
-        }
-    }
-    else if (found == 2)
-    {
-        if ((vars.tokens.size()- 1) != 1)
-        throw std::runtime_error(Invalid_arguments(vars.line));
-        if (vars.tokens[pos].compare("on"))
-            vars.tmp_location.set_index(1);
-        else if (vars.tokens[pos].compare("off"))
-            vars.tmp_location.set_index(0);
-        else
-            throw std::runtime_error(unexpected_token(vars.tokens[pos]));
-        vars.location_state.autoindex = 2;
-        pos = pos + 2;
-    }
+	std::vector<std::string>::iterator it;
+	std::cout << "Path : " + this->path << std::endl;
+	std::cout << "root : " + this->root << std::endl;
+	std::cout << "access : " + this->_access << std::endl;
+	std::cout << "default: ";
+	it = default_file.begin();
+	while (it != default_file.end())
+	{
+		std::cout << *it << "\t";
+		it++;
+	}
+	std::cout << std::endl;
+	std::cout << "Allowed Methods: ";
+	it = allowed.begin();
+	while (it != allowed.end())
+	{
+		std::cout << "\t" << *it;
+		it++;
+	}
+	std::cout << std::endl;
+	std::cout << "Limit Body Size: " << limit_client_body << std::endl;
+	if (index == 0)
+		std::cout << "index: off" << std::endl;
+	else
+		std::cout << "index: on" << std::endl;
+	std::cout << std::endl;
 }

@@ -1,32 +1,69 @@
 #include "parse_config.hpp"
 
-static void	print_conf(t_parse &vars)
+static void	print_conf(s_config &configs)
 {
-	std::cout << "\n=============== configs ==================\n";
-	if (vars.tmp_server.port)
-		std::cout << "listen : " << vars.tmp_server.port << "\n";
-	if (!vars.tmp_server.host.empty())
-		std::cout << "host : " << vars.tmp_server.host << "\n";
-	if (!vars.tmp_server.server_name.empty())
-		std::cout << "server_name : " << vars.tmp_server.server_name << "\n";
-	if (!vars.tmp_server.client_max_body_size)
-		std::cout << "client body : " << vars.tmp_server.client_max_body_size << "\n";
-	if (!vars.tmp_server.root.empty())
-		std::cout << "root : " << vars.tmp_server.root << "\n";
-	if (!vars.tmp_server.index.empty())
-		std::cout << "index : " << vars.tmp_server.index << "\n";
-	if (!vars.tmp_server.error_pages.empty())
+	std::vector<v_server>::iterator it = configs.vservers.begin();
+	while (it != configs.vservers.end())
 	{
-		for (std::map<int , std::string>::iterator it = vars.tmp_server.error_pages.begin(); it != vars.tmp_server.error_pages.end(); it++)
-			std::cout << "error " << (*it).first << "\t" << (*it).second << std::endl;
+		(*it).print_server();
+		it++;
 	}
-	if (!vars.tmp_location.get_index())
-		std::cout << "autoindex off\n";
-	else
-		std::cout << "autoindex on\n";
-	if (!vars.tmp_location.get_default().empty())
-	std::cout << "location index : " << vars.tmp_location.get_default()[0] << "\n";
-	std::cout << "\n=========================================\n";
+
+	// std::cout << "\n=============== configs ==================\n";
+	// if (vars.tmp_serv.get_port())
+	// 	std::cout << "listen : " << vars.tmp_serv.get_port() << "\n";
+	// if (!vars.tmp_serv.get_host().empty())
+	// 	std::cout << "host : " << vars.tmp_serv.get_host() << "\n";
+	// if (!vars.tmp_serv.get_name().empty())
+	// 	std::cout << "server_name : " << vars.tmp_serv.get_name() << "\n";
+	// if (!vars.tmp_serv.get_limit())
+	// 	std::cout << "client body : " << vars.tmp_serv.get_limit() << "\n";
+	// if (!vars.tmp_serv.get_root().empty())
+	// 	std::cout << "root : " << vars.tmp_serv.get_root() << "\n";
+	// if (!vars.tmp_serv.get_index().empty())
+	// 	std::cout << "index : " << vars.tmp_serv.get_index() << "\n";
+	// std::cout << "allow methods : ";
+	// if (!vars.tmp_serv.get_methods().empty())
+	// {
+	// 	std::list<std::string> methd = vars.tmp_serv.get_methods();
+	// 	std::list<std::string>::iterator lit = methd.begin();
+	// 	std::list<std::string>::iterator end = methd.end();
+	// 	while (lit != end)
+	// 	{
+	// 		std::cout << *lit << " ";
+	// 		lit++;
+	// 	}
+	// }
+	// std::cout << "\n";
+	// if (!vars.tmp_serv.get_error_pg().empty())
+	// {
+	// 	std::map<int, std::string> error_pg = vars.tmp_serv.get_error_pg();
+	// 	for (std::map<int , std::string>::iterator it = error_pg.begin(); it != error_pg.end(); it++)
+	// 		std::cout << "error " << (*it).first << "\t" << (*it).second << std::endl;
+	// }
+	// std::cout << "\n============= LOCATION ===============\n";
+	// std::cout << "path : " << vars.tmp_location.get_path() << "\n";
+	// std::cout << "limit : " << vars.tmp_location.get_limit() << "\n";
+	// std::cout << "autoindex : " << vars.tmp_location.get_index() << "\n";
+	// std::cout << "location index : " << (!vars.tmp_location.get_default().empty() ? vars.tmp_location.get_default()[0] : "empty") << "\n";
+	// std::cout << "access : " << vars.tmp_location.get_access() << "\n";
+	// std::cout << "root : " << vars.tmp_location.get_root() << "\n";
+	// std::cout << "allow methods : ";
+	// for (size_t i = 0; i < vars.tmp_location.get_methods().size(); i++) { std::cout << vars.tmp_location.get_methods()[i] << " ";}
+	// std::cout << "\n";
+	// std::cout << "----------------------CGI------------------------\n";
+	// std::map<std::string, std::string> cgi = vars.tmp_serv.get_cgi();
+	// std::map<std::string, std::string>::iterator it = cgi.begin();
+	// std::map<std::string, std::string>::iterator end = cgi.end();
+	// while (it != end) { std::cout << "cgi : " << (*it).first << "\t" << (*it).second ;  it++;}
+	// std::cout << "\n-------------------------------------------------\n";
+	// std::cout << "\n=========================================\n";
+}
+
+void parse_check(t_parse &vars)
+{
+	if (vars.server_state.server || vars.server_state.location)
+		throw std::runtime_error(missing_close_brace("}"));
 }
 
 void parse_config(char *config_path)
@@ -45,14 +82,15 @@ void parse_config(char *config_path)
 				if (!vars.tokens.empty())
 				{
 					if (vars.server_state.location)
-						location_block(vars);
+						location_block(vars, configs);
 					else
 						server_block(vars, configs);
 					vars.tokens.clear();
-					print_conf(vars);
 				}
 			}
         }
+		parse_check(vars);
+		print_conf(configs);
 	}
 	else
 		throw std::runtime_error("Error : File not found");

@@ -17,12 +17,12 @@ class v_server
 	private:
 		// Default
 		std::string host;
-		int	port;
+		int	port; // from string to int
 		std::string name;
 		std::string root;
 		std::string default_page;
-		int limit_body;
-		std::string limit_body_s;
+		int limit_body; 
+		std::string limit_body_s; //  see if used
 		std::list<std::string> methods;
 		std::map<std::string ,location> locations;
 		std::map<std::string, std::string> cgi;
@@ -38,7 +38,7 @@ class v_server
 		int par_error;
 		int page_error_val;
 		// t_error_messages _err;
-		std::map<std::string, std::string> error_pg; // error pages
+		std::map<int, std::string> error_pg; // error pages
 
 		// Request
 		int qu_len;
@@ -59,47 +59,53 @@ class v_server
 		~v_server();
 
         // Set Methods
-		void set_host(std::string str);
-		void set_port(std::string str);
-		void set_name(std::string str);
-		void set_limit(std::string str);
-		void set_methods(std::string str);
-		void set_cgi(std::string name, std::string path);
-		void set_location(std::vector<std::string>::iterator &it, std::vector<std::string>::iterator end);
-		void set_error(std::vector<std::string> res);
-		void cgi_parse(std::vector<std::string>::iterator it, std::vector<std::string>::iterator end);
-		void set_root(std::string str);
-		void set_qu_string(std::string str);
-		void set_pg_val(int val);
-		void set_method(std::string val);
-		void set_pwd(std::string p);
-		void set_qu_len(std::string val);
-		void set_access(std::string val);
-		void set_client_ip(std::string val);
+		void set_host(std::string &host);
+		void set_port(int &port);
+		void set_name(std::string &name);
+		void set_limit(int &limit);
+		void set_root(std::string &root);
+		void set_method(std::string &method);
+		std::pair<std::map<int, std::string>::iterator, bool> set_error_page(std::pair<int, std::string> &error_page);
+		void set_index(std::string &index);
+		std::pair<std::map<std::string , std::string>::iterator, bool> set_cgi(std::pair<std::string, std::string> &cgi);
+		void set_location(std::pair<std::string, location> &location);
+		// void set_access(std::string val);
+		// void cgi_parse(std::vector<std::string>::iterator it, std::vector<std::string>::iterator end);
+		// void set_qu_string(std::string str);
+		// void set_pg_val(int val);
+		// void set_method(std::string val);
+		// void set_pwd(std::string p);
+		// void set_qu_len(std::string val);
+		// void set_client_ip(std::string val);
 		
         // Get Methods
-		std::string get_host();
-		std::string get_port();
-		std::list<std::string> get_methods();
-		std::string get_string_methods();
-		std::string get_name();
-		std::string get_cgi();
-		std::string get_file_type();
-		std::string get_root();
-		std::string get_error_page(int val);
-		std::string get_method();
-		std::string get_req_file(std::string val, std::string met);
-		std::string get_file(std::map<std::string, location>::iterator loc, std::string val);
-		std::map<std::string ,location> get_location();
-		// file_log get_f_log();
-		// headers get_header_var(void);
-		std::string get_body_s();
-		std::string ft_read_file(std::string val);
-		int get_fd_server();
-		struct sockaddr_in get_server_address();
-		int get_limit();
-        int value_port();
-		int get_pg_error();
+		int get_port() const ;
+		std::string get_host() const ;
+		std::string get_index() const ;
+		std::string get_name() const ;
+		std::string get_string_methods() const ;
+		std::list<std::string> get_methods() const ;
+		// std::string get_cgi() const ;
+		std::map<std::string, std::string> get_cgi() const ;
+		std::string get_file_type() const ;
+		std::string get_root() const ;
+		std::map<int, std::string> get_error_pg();
+		std::string get_error_page(int val) ;
+		// std::string get_method() const ;
+		std::string get_req_file(std::string val, std::string met) const ;
+		std::string get_file(std::map<std::string, location>::iterator loc, std::string val) const ;
+		std::map<std::string ,location> get_location() const ;
+		std::string get_body_s() const ;
+		std::string ft_read_file(std::string val) ;
+		int get_limit() const ;
+        int value_port() const ;
+		int get_pg_error() const ;
+		int get_fd_server() ;
+		struct sockaddr_in get_server_address() ;
+		// file_log get_f_log() const ;
+		// headers get_header_var(void) const ;
+
+		void	clear();
 
 		// Extra
 		bool check();
@@ -140,7 +146,6 @@ typedef struct s_config
     static const int interface = INADDR_ANY;
     int backlog;
     int n_v_servers;
-
     std::vector<v_server> vservers;
 } config;
 
@@ -150,10 +155,9 @@ typedef struct s_config
 typedef	struct							s_state
 {
 	int									server;
-	int									left_brace;
-	int									right_brace;
 	int									listen;
 	int									host;
+	int									allow_method;
 	int									client_max_body_size;
 	int									server_name;
 	int									root;
@@ -167,10 +171,12 @@ typedef	struct							s_state
 typedef	struct							l_state
 {
 	int									index;
+	int									root;
+	int									access;
+	int									client_max_body_size;
 	int									autoindex;
 	int									allow_method;
-	int									upload_enable;
-	int									retrn;
+	int									cgi;
 }										loc_state;
 
 
@@ -181,7 +187,6 @@ typedef	struct							l_state
 // 	std::pair<bool, std::string>		location;
 // 	std::string							index;
 // 	bool								autoindex;
-// 	bool								upload_enable;
 // 	std::vector<std::string>			allow_method;
 // }										t_location;
 
@@ -214,33 +219,22 @@ typedef struct							s_parse
 
 }										t_parse;
 
-// SECTION - Config Structure
-
-struct 									config
-{
-	/* data */
-	// int domain = AF_INET;
-	// int type = SOCK_STREAM;
-	// int interface = INADDR_ANY;
-	// int backlog;
-	// v_server    *vservers;
-	
-	int 								n_v_servers;
-	std::vector<v_server> 				v_servers;
-};
-
 // SETION - Config File Parsing 
 
 void    					parse_config(char *config_path);
 void						comment_check(std::string& line);
 void						server_block(t_parse &vars, config &configs);
 void						left_brace(t_parse &vars , size_t &pos);
+void						right_brace(t_parse &vars, size_t &pos, s_config &config);
 void						listen(t_parse &vars, size_t &pos);
 void						set_listen_port(t_parse &vars, size_t &pos, int & found);
 void						host(t_parse &vars, size_t &pos);
 void						check_set_ip(t_parse &vars, size_t &pos);
 void						index(t_parse &vars, size_t &pos, std::string &index, int &ref_state);
-void    					location_block(t_parse &vars);
+void    					location_block(t_parse &vars, s_config &configs);
+void						check_set_autoindex(t_parse &vars, size_t &pos);
+void						check_set_location_index(t_parse &vars, size_t &pos);
+void						clear_location(t_parse &vars);
 
 
 // SUBSECTION - Parsing Utils
@@ -249,6 +243,8 @@ bool						IsNumber(std::string &str);
 bool						Is_IP_Adress(std::string &str);
 std::vector<std::string> 	split_line(std::string  const &line, std::string const &delimiters);
 int							semicolon_check(t_parse &vars, size_t &pos);
+std::string trim_tok( std::string &str, std::string left_trimer, std::string right_trimer);
+
 
 
 // SECTION - Syntax Error

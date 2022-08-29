@@ -39,7 +39,6 @@ int main(int ac , char **av) try
         // }
         // else
         //     std::cout << "Provide config file" << std::endl;
-        
         return 0;
       
 }

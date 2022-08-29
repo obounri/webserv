@@ -7,6 +7,48 @@
 // if any other directive after location throw location should the last directive
 // 
 
+
+void	clear_server(t_parse &vars)
+{
+	vars.server_state.server = 0;
+	vars.server_state.server_name = 0;
+	vars.server_state.listen = 0;
+	vars.server_state.client_max_body_size = 0;
+	vars.server_state.allow_method = 0;
+	vars.server_state.error_page = 0;
+	vars.server_state.index = 0;
+	vars.server_state.host = 0;
+	vars.server_state.root = 0;
+	vars.tmp_serv.clear();
+}
+
+void	right_brace(t_parse &vars, size_t &pos, s_config &config)
+{
+	if (vars.server_state.server == 2)
+	{
+		if (vars.server_state.location == 2)
+		{
+			std::pair<std::string, location> _location(vars.tmp_location.get_path(), vars.tmp_location);
+			vars.tmp_serv.set_location(_location);
+			clear_location(vars);
+			pos++;
+		}
+		else
+		{
+			if (!vars.server_state.listen || !vars.server_state.host)
+				throw std::runtime_error("Error : server block not valid\n");
+			else
+			{
+				config.vservers.push_back(vars.tmp_serv);
+				clear_server(vars);
+				pos++;
+			}
+		}
+	}
+	else
+		throw std::runtime_error(unexpected_token(vars.tokens[pos]));
+}
+
 void	left_brace(t_parse &vars , size_t &pos)
 {
 	if ((vars.server_state.server == 2 && !vars.server_state.location) || vars.server_state.location == 2 )
@@ -20,7 +62,6 @@ void	left_brace(t_parse &vars , size_t &pos)
 		{
 			vars.server_state.server = 2;
 			pos++;
-			std::cout << "server is on\n";
 		}
 		else
 			throw std::runtime_error(missing_open_brace("server"));
@@ -46,6 +87,11 @@ void	left_brace(t_parse &vars , size_t &pos)
 
 void     check_set_port(t_parse &vars, size_t &pos)
 {
+	if (!vars.server_state.listen)
+	{
+		vars.server_state.listen = 1;
+		pos++;
+	}
 	int found = semicolon_check(vars, pos);
 	if (found == 0 || vars.server_state.listen == 2)
 		throw std::runtime_error(Syntax_error(vars.line));
@@ -83,11 +129,11 @@ void     check_set_port(t_parse &vars, size_t &pos)
 
 // void	listen(t_parse &vars, size_t &pos)
 // {
-// 	if (!vars.server_state.listen)
-// 	{
-// 		vars.server_state.listen = 1;
-// 		pos++;
-// 	}
+	// if (!vars.server_state.listen)
+	// {
+	// 	vars.server_state.listen = 1;
+	// 	pos++;
+	// }
 // 		check_set_port(vars, pos);
 // 		// if (vars.server_state.listen == 1)
 // 		// 	throw std::runtime_error(Syntax_error(vars.line));
@@ -95,6 +141,11 @@ void     check_set_port(t_parse &vars, size_t &pos)
 
 void	check_set_host(t_parse &vars, size_t &pos)
 {
+	if (!vars.server_state.host)
+	{
+		vars.server_state.host = 1;
+		pos++;
+	}
 	int found = semicolon_check(vars, pos);
 	if (found == 0 || vars.server_state.host == 2)
 		throw std::runtime_error(Syntax_error(vars.line));
@@ -128,11 +179,11 @@ void	check_set_host(t_parse &vars, size_t &pos)
 
 // void	host(t_parse &vars, size_t &pos)
 // {
-// 	if (!vars.server_state.host)
-// 	{
-// 		vars.server_state.host = 1;
-// 		pos++;
-// 	}
+	// if (!vars.server_state.host)
+	// {
+	// 	vars.server_state.host = 1;
+	// 	pos++;
+	// }
 // 	while (pos < vars.tokens.size())
 // 		check_set_ip(vars, pos);
 // 	if (vars.server_state.host == 1)
@@ -303,8 +354,8 @@ void	check_set_error_page(t_parse &vars, size_t &pos)
 			if (!IsNumber(vars.tokens[pos]))
 				throw std::runtime_error(unexpected_token(vars.tokens[pos]));
 			int error_page_number = std::stoi(vars.tokens[pos]);
-			std::pair<std::string, std::string> error_page(vars.tokens[pos], t_vec[0]); 
-			std::pair<std::map<std::string , std::string>::iterator, bool> exist = vars.tmp_serv.set_error_page(error_page);  
+			std::pair<int, std::string> error_page(error_page_number, t_vec[0]); 
+			std::pair<std::map<int , std::string>::iterator, bool> exist = vars.tmp_serv.set_error_page(error_page);  
 			if (!exist.second)
 				throw std::runtime_error(duplicate_key(vars.line));
 			vars.server_state.error_page = 2;
@@ -317,9 +368,9 @@ void	check_set_error_page(t_parse &vars, size_t &pos)
 			throw std::runtime_error(Invalid_arguments(vars.line));
 		if (!IsNumber(vars.tokens[pos]))
 				throw std::runtime_error(unexpected_token(vars.tokens[pos]));
-		// int error_page_number = std::stoi(vars.tokens[pos]);
-		std::pair<std::string, std::string> error_page(vars.tokens[pos], vars.tokens[pos + 1]); 
-		std::pair<std::map<std::string , std::string>::iterator, bool> exist = vars.tmp_serv.set_error_page(error_page);
+		int error_page_number = std::stoi(vars.tokens[pos]);
+		std::pair<int, std::string> error_page(error_page_number, vars.tokens[pos + 1]); 
+		std::pair<std::map<int , std::string>::iterator, bool> exist = vars.tmp_serv.set_error_page(error_page);
 		if (!exist.second)
 			throw std::runtime_error(duplicate_key(vars.line));
 		vars.server_state.error_page = 2;
@@ -329,6 +380,11 @@ void	check_set_error_page(t_parse &vars, size_t &pos)
 
 void	check_set_server_index(t_parse &vars, size_t &pos)
 {
+	if (!vars.server_state.index)
+	{
+		vars.server_state.index = 1;
+		pos++;
+	}
 	size_t found = semicolon_check(vars, pos);
 	if (found == 0 || vars.server_state.index == 2)
 		throw std::runtime_error(Syntax_error(vars.line));
@@ -354,16 +410,61 @@ void	check_set_server_index(t_parse &vars, size_t &pos)
 	}
 }
 
-// void	index(t_parse &vars, size_t &pos, std::string &index, int &ref_state)
-// {
-// 	if (!ref_state)
-// 	{
-// 		ref_state = 1;
-// 		pos++;
-// 	}
-// 	// while (pos < vars.tokens.size())
-// 		check_set_index(vars, pos, index, ref_state);
-// }
+void    check_set_server_allow_method(t_parse &vars, size_t &pos)
+{
+    if (!vars.server_state.allow_method)
+    {
+        vars.server_state.allow_method = 1;
+        pos++;
+    }
+    size_t found = semicolon_check(vars, pos);
+    if (found == 0 || vars.server_state.allow_method == 2)
+        throw std::runtime_error(Syntax_error(vars.line));
+    else if (found == 1)
+    {
+        if (vars.tokens[pos][0] != '[' || (vars.tokens[pos][vars.tokens[pos].length() - 2] != ']'))
+		{
+            throw std::runtime_error("Syntax Error : Invalid arguments " + vars.line);
+		}
+		if ((vars.tokens.size() - pos) != 1)
+            throw std::runtime_error(Invalid_arguments(vars.line));
+        std::string trimed = trim_tok(vars.tokens[pos], "[", "];");
+        std::vector<std::string> t_vec = split_line(trimed, ",");
+        if (!t_vec.empty())
+        {
+			for (size_t i = 0; i < t_vec.size(); i++)
+			{
+				if (t_vec[i] != "GET" && t_vec[i] != "PUT" && t_vec[i] != "POST" && t_vec[i] != "HEAD" && t_vec[i] != "TRACE" && t_vec[i] != "OPTIONS" && t_vec[i] != "DELETE")
+					throw std::runtime_error("Syntax Error : unknown method '" + (t_vec[i] + "'"));
+				vars.tmp_serv.set_method(t_vec[i]);
+			}
+			vars.server_state.allow_method = 2;
+			pos++;
+        }
+    }
+    else if (found == 2)
+    {
+		if (vars.tokens[pos][0] != '[' || (vars.tokens[pos][vars.tokens[pos].length() - 1] != ']'))
+            throw std::runtime_error("Syntax Error : Invalid arguments '" + (vars.line + "'"));
+		if ((vars.tokens.size() - pos) != 2)
+            throw std::runtime_error(Invalid_arguments(vars.line));
+        std::string trimed = trim_tok(vars.tokens[pos], "[", "]");
+        std::vector<std::string> t_vec = split_line(trimed, ",");
+        if (!t_vec.empty())
+        {
+			for (size_t i = 0; i < t_vec.size(); i++)
+			{
+				if (t_vec[i] != "GET" && t_vec[i] != "PUT" && t_vec[i] != "POST" && t_vec[i] != "HEAD" && t_vec[i] != "TRACE" && t_vec[i] != "OPTIONS" && t_vec[i] != "DELETE")
+					throw std::runtime_error("Syntax Error : unknown method '" + (t_vec[i] + "'"));
+				vars.tmp_serv.set_method(t_vec[i]);
+			}
+			vars.server_state.allow_method = 2;
+			pos = pos + 2;;
+        }
+    }
+	if (vars.server_state.allow_method == 1)
+		throw std::runtime_error(Syntax_error(vars.line));
+}
 
 void	check_set_location(t_parse &vars, size_t &pos)
 {
@@ -373,7 +474,6 @@ void	check_set_location(t_parse &vars, size_t &pos)
 	{
 		pos++;
 		vars.tmp_location.set_path(vars.tokens[pos]);
-		// vars.tmp_location.location.second = vars.tokens[pos];
 		pos++;
 		vars.server_state.location = 1;
 		if (pos < vars.tokens.size())
@@ -386,7 +486,7 @@ void	server_block(t_parse &vars, config &configs)
 	size_t pos = 0;
 	if (!vars.server_state.server && vars.tokens[pos].compare("server"))
 		throw std::runtime_error(unexpected_token(vars.tokens[pos]));
-	else if (!vars.server_state.server) // if server_state 0
+	else if (!vars.server_state.server)
 	{
 		vars.server_state.server = 1;
 		pos++;
@@ -412,13 +512,13 @@ void	server_block(t_parse &vars, config &configs)
 			check_set_server_index(vars, pos);
 		else if (!vars.tokens[pos].compare("error_page"))
 			check_set_error_page(vars, pos);
+		else if (!vars.tokens[pos].compare("allow_method"))
+			check_set_server_allow_method(vars, pos);
+		else if (!vars.tokens[pos].compare("}"))
+			right_brace(vars, pos, configs);
 		else
 			throw std::runtime_error(unexpected_token("unknown : " + vars.tokens[pos]));
 	}
-		// else if (!vars.tokens[pos].compare("}"))
-		// {
-		// 	std::cout << "right brace found\n";
-		// 	pos++;
-		// }
+
 	return ;
 }
