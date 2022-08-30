@@ -35,32 +35,32 @@ bool check_status(std::string str, v_server &s)
 	return false;
 }
 
-void before_polling_and_pass_to_handle_request(std::vector<v_server> g_ret) {
-	// g_ret is from parser
+// void before_polling_and_pass_to_handle_request() {
+// 	// g_ret is from parser
 
-	std::vector<v_server>::iterator it = g_ret.begin();
-	std::map<std::string, v_server> extra;
-	std::map<std::string, v_server> ::iterator e_it = extra.begin();
-	std::multimap<std::string, v_server> extra_map;
-	std::multimap<std::string, v_server>::iterator m_it;
+// 	std::vector<v_server>::iterator it = myvs.begin();
+// 	std::map<std::string, v_server> extra;
+// 	std::map<std::string, v_server> ::iterator e_it = extra.begin();
+// 	std::multimap<std::string, v_server> extra_map;
+// 	std::multimap<std::string, v_server>::iterator m_it;
 
-	while (it != g_ret.end())
-	{
-		extra_map.insert(std::make_pair((*it).get_host() + ":" + (*it).get_port() + "#" + (*it).get_name(), *it));
-		extra.insert(std::make_pair((*it).get_host() + ":" + (*it).get_port(), *it));
-		it++;
-	}
-	g_ret.clear();
+// 	while (it != myvs.end())
+// 	{
+// 		extra_map.insert(std::make_pair((*it).get_host() + ":" + std::to_string((*it).get_port()) + "#" + (*it).get_name(), *it));
+// 		extra.insert(std::make_pair((*it).get_host() + ":" + std::to_string((*it).get_port()), *it));
+// 		it++;
+// 	}
+// 	myvs.clear();
 
-	e_it = extra.begin();
-	while (e_it != extra.end())
-	{
-		g_ret.push_back(e_it->second);
-		e_it++;
-	}
-}
+// 	e_it = extra.begin();
+// 	while (e_it != extra.end())
+// 	{
+// 		myvs.push_back(e_it->second);
+// 		e_it++;
+// 	}
+// }
 
-void    MainServer::handle_request(v_server &s, client *c, std::multimap<std::string, v_server> extra)
+void    MainServer::handle_request(v_server &s, client *c)
 {
     std::string server_response;
     std::multimap<std::string, v_server>::iterator m_ea;
@@ -72,8 +72,8 @@ void    MainServer::handle_request(v_server &s, client *c, std::multimap<std::st
         s.set_pg_val(400);
     else
     {
-        m_ea = extra.find(s.get_host() + ":" + s.get_port() + "#" + s.get_header_var().get_key("Host"));
-        if (m_ea != extra.end())
+        m_ea = extra_map.find(s.get_host() + ":" + std::to_string(s.get_port()) + "#" + s.get_header_var().get_key("Host"));
+        if (m_ea != extra_map.end())
         {
             s = m_ea->second;
             check_status(c->get_status_header(), s);

@@ -6,7 +6,7 @@
 /*   By: obounri <obounri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/28 19:09:14 by obounri           #+#    #+#             */
-/*   Updated: 2022/08/28 19:09:19 by obounri          ###   ########.fr       */
+/*   Updated: 2022/08/30 16:22:43 by obounri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,17 +27,19 @@ std::vector<std::string> location::get_methods(){
 	return (this->allowed);
 };
 
-void location::set_methods(std::string methods)
-{
-	this->allowed = ft_split(methods, ", ");
-	std::vector<std::string>::iterator it = allowed.begin();
-	while (it != allowed.end() && par_error == 0)
-	{
-		if (*it != "GET" && *it != "PUT" && *it != "POST" && *it != "HEAD" && *it != "TRACE" && *it != "OPTIONS" && *it != "DELETE")
-			par_error = 1;
-		it++;
-	}
-}
+// void location::set_methods(std::string methods)
+// {
+// 	this->allowed = ft_split(methods, ", ");
+// 	std::vector<std::string>::iterator it = allowed.begin();
+// 	while (it != allowed.end() && par_error == 0)
+// 	{
+// 		if (*it != "GET" && *it != "PUT" && *it != "POST" && *it != "HEAD" && *it != "TRACE" && *it != "OPTIONS" && *it != "DELETE")
+// 			par_error = 1;
+// 		it++;
+// 	}
+// }
+
+void location::set_method(std::string method) { this->allowed.push_back(method); }
 
 std::string location::get_access()
 {
@@ -118,11 +120,8 @@ void location::print_location()
 		std::cout << "Error" << std::endl;
 	std::cout << std::endl;
 }
-void location::set_index(std::string var)
-{
-	if (var == "on")
-		this->index = 1;
-}
+
+void	location::set_index(int index) { this->index = index; }
 
 std::string location::get_string_methods()
 {
@@ -143,11 +142,7 @@ int location::get_limit(){
 	return (limit_client_body);
 };
 
-void location::set_limit_body_size(std::string var)
-{
-	body_s = var;
-	this->limit_client_body = ft_atoi(var.c_str());
-};
+void location::set_limit_body_size(int limit) { this->limit_client_body = limit; }
 
 
 int location::ft_method_check(std::string val)
@@ -161,4 +156,16 @@ int location::ft_method_check(std::string val)
 		it++;
 	}
 	return (0);
+}
+
+void								location::clear()
+{
+	this->path.clear();
+	this->root.clear();
+	this->default_file.clear();
+	this->allowed.clear();
+	this->body_s.clear();
+	this->_access.clear();
+	this->index = 0;
+	this->limit_client_body = 0;
 }

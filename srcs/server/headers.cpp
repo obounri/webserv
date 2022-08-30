@@ -6,7 +6,7 @@
 /*   By: obounri <obounri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/28 19:09:32 by obounri           #+#    #+#             */
-/*   Updated: 2022/08/28 19:09:42 by obounri          ###   ########.fr       */
+/*   Updated: 2022/08/30 16:15:21 by obounri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,7 @@ void headers::push(std::string key, std::string value)
 void headers::set_http(int value, std::string stat)
 {
     http_status = "HTTP/1.1 ";
-    http_status += tostring(value);
+    http_status += std::to_string(value);
     http_status += " ";
     http_status += stat;
 }

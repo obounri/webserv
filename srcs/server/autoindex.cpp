@@ -6,7 +6,7 @@
 /*   By: obounri <obounri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/28 19:09:50 by obounri           #+#    #+#             */
-/*   Updated: 2022/08/28 19:09:55 by obounri          ###   ########.fr       */
+/*   Updated: 2022/08/30 16:15:33 by obounri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,7 @@ std::string send_auto(std::string dir, headers var, std::string method, file_log
 			strftime (buff,80,"%a, %e %b %Y %H:%M:%S",timeinfo);
 			full_msg += buff;
 			full_msg += "\t\t";
-			full_msg += tostring(statbuf.st_size);
+			full_msg += std::to_string(statbuf.st_size);
 			full_msg += "\n";
 		}
         else if (ft_strcmp(dp->d_name, "..") != 0)
@@ -88,7 +88,7 @@ std::string send_auto(std::string dir, headers var, std::string method, file_log
 	}
 	full_msg += "<hr></pre>\n</body><html>\n";
 	closedir(o_dir);
-	var.push("Content-Length", tostring(full_msg.size()));
+	var.push("Content-Length", std::to_string(full_msg.size()));
 	if (method == "HEAD")
 		var.push("Content-Type", "");
 	else

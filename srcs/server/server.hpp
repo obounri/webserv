@@ -2,7 +2,7 @@
 # define SERVER_HPP
 
 #include "../sockets/sockets.hpp"
-#include "../parsers/parse.hpp"
+#include "../parsers/parse_config.hpp"
 #include <exception>
 #include <strings.h>
 #include <stdlib.h>
@@ -30,18 +30,21 @@ class MainServer
         void    accept_new_connection(unsigned long int fd);
         void    destroy_connection(client *c, int event);
         void    recv_request(client *c);
-        void    handle_request(v_server &s, client *c, std::multimap<std::string, v_server> extra);
+        void    handle_request(v_server &s, client *c);
         void    send_request(client *c);
 
         int         is_listener(unsigned long int fd);
         v_server&   get_client_server(unsigned long int fd);
     public:
         std::vector<v_server>   myvs; // init to test
+        std::multimap<std::string, v_server> extra_map;
         MainServer();
         void init_server();
         ~MainServer();
 
         void            run();
 };
+
+
 
 #endif

@@ -75,6 +75,8 @@
         "cerrno": "cpp",
         "__tree": "cpp",
         "list": "cpp",
-        "iomanip": "cpp"
+        "iomanip": "cpp",
+        "fstream": "cpp",
+        "stack": "cpp"
     }
 }

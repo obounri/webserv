@@ -6,7 +6,7 @@
 /*   By: obounri <obounri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/28 19:10:24 by obounri           #+#    #+#             */
-/*   Updated: 2022/08/28 19:10:26 by obounri          ###   ########.fr       */
+/*   Updated: 2022/08/30 16:14:08 by obounri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -285,18 +285,18 @@ int ft_strlen(char *str)
 	return (i);
 }
 
-std::string tostring(int n)
-{
-    std::string ss;
-    if (n == 0)
-        ss = "0";
-    while (n) {
-        char i = '0' + (n % 10);
-        n /= 10;
-        ss = i + ss;
-    }
-    return ss;
-}
+// std::string tostring(int n)
+// {
+//     std::string ss;
+//     if (n == 0)
+//         ss = "0";
+//     while (n) {
+//         char i = '0' + (n % 10);
+//         n /= 10;
+//         ss = i + ss;
+//     }
+//     return ss;
+// }
 
 static const std::string base64_chars =
 "ABCDEFGHIJKLMNOPQRSTUVWXYZ"

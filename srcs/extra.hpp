@@ -6,7 +6,7 @@
 /*   By: obounri <obounri@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/08/28 19:10:18 by obounri           #+#    #+#             */
-/*   Updated: 2022/08/28 19:10:20 by obounri          ###   ########.fr       */
+/*   Updated: 2022/08/30 16:53:22 by obounri          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@
 
 #define MAX_BODY 1000000000
 
-std::string     tostring(int n);
+// std::string     std::to_string(int n);
 
 typedef struct file_log
 {
@@ -187,9 +187,9 @@ typedef struct s_error_messages
 
         ret.clear();
         ret += "<!DOCTYPE HTML><html><head>\n<style>h1 {text-align: center;}</style>\n";
-        ret += "<title>" + tostring(value) + "  " + _data[value] + "</title>\n";
+        ret += "<title>" + std::to_string(value) + "  " + _data[value] + "</title>\n";
         ret += "</head><body>";
-        ret += "<h1>" + tostring(value) + "  " + _data[value] + "</h1></body><html>"; // \n
+        ret += "<h1>" + std::to_string(value) + "  " + _data[value] + "</h1></body><html>"; // \n
         return (ret);
     };
 }   t_error_messages;
@@ -215,9 +215,9 @@ class location
 		void set_path(std::string path);
 		void set_root(std::string root);
 		void set_default(std::string def);
-		void set_index(std::string index);
-		void set_methods(std::string methods);
-		void set_limit_body_size(std::string var);
+		void set_index(int index);
+		void set_method(std::string method);
+		void set_limit_body_size(int limit);
 		void set_access(std::string val);
 
 		// get
@@ -225,14 +225,16 @@ class location
 		std::string get_root();
 		std::vector<std::string> get_default();
 		std::vector<std::string> get_methods();
-		std::string get_body_s();
-		std::string get_string_methods();
 		int get_limit();
 		int get_index();
+		std::string get_access();
+        
+		std::string get_body_s();
+		std::string get_string_methods();
 		int valid();
 		void print_location();
 		int ft_method_check(std::string val);
-		std::string get_access();
+        void clear();
 };
 
 class cgi_env

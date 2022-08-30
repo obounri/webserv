@@ -13,8 +13,7 @@ void	MainServer::init_server()
     if ((keq = kqueue()) == -1)
         throw std::runtime_error("kqueue failed..");
     for (std::vector<v_server>::iterator it = myvs.begin(); it != myvs.end(); it++) {
-        // listeners.push_back(new Socket(data.domain, data.type, data.interface, atoi(data.vservers[i].get_port().c_str()), data.backlog));
-		it->listener = new Socket(AF_INET, SOCK_STREAM, INADDR_ANY, atoi(it->get_port().c_str()), 10);
+		it->listener = new Socket(AF_INET, SOCK_STREAM, INADDR_ANY, it->get_port(), 10);
         EV_SET(&evSet, it->get_fd_server(), EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
         kevent(keq, &evSet, 1, NULL, 0, NULL);
     }
@@ -22,13 +21,9 @@ void	MainServer::init_server()
 
 int     MainServer::is_listener(unsigned long int fd)
 {
-    // for (unsigned int i = 0; i < listeners.size(); i++)
-    //     if (listeners[i]->get_socket() == fd)
-    //         return (1);
 	for (std::vector<v_server>::iterator it = myvs.begin(); it != myvs.end(); it++)
 		if (it->get_fd_server() == fd)
 			return 1;
-	// listeners.push_back(new Socket(data.domain, data.type, data.interface, atoi(data.vservers[i].get_port().c_str()), data.backlog));
     return (0);
 }
 
@@ -36,8 +31,6 @@ MainServer::~MainServer()
 {
     std::cout << "server destructor called.." << std::endl;
     close(keq);
-    // for (unsigned int i = 0; i < listeners.size(); i++)
-    //     delete listeners[i];
 	for (std::vector<v_server>::iterator it = myvs.begin(); it != myvs.end(); it++)
 		delete it->listener;
     std::cout << std::endl << "server shut down, take care :).." << std::endl;
@@ -121,8 +114,7 @@ void    MainServer::recv_request(client *c)
 			c->ft_unchunck_body();
         std::cout << "\ncompleted request from fd " << c->fd << std::endl << c->client_request;
 
-		std::multimap<std::string, v_server> extra;
-        handle_request(get_client_server(c->v_server_fd), c, extra);
+        handle_request(get_client_server(c->v_server_fd), c);
         
 		// c->client_response = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Length: 3280\r\n\r\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Sed velit velit, convallis vel hendrerit ut, facilisis scelerisque lorem. Praesent quis lectus eu lorem tincidunt iaculis nec ac diam. Quisque scelerisque felis felis, nec varius ipsum placerat nec. Donec faucibus tellus a sollicitudin pretium. In ornare aliquet pretium. Donec vestibulum ut enim id mattis. Morbi ullamcorper auctor leo, a ultricies nunc maximus sit amet. Donec facilisis orci tortor, cursus tincidunt sem sodales tristique. Nam lacinia, mi ut aliquam varius, risus massa scelerisque tortor, id tristique ipsum dui placerat enim. Mauris vehicula commodo ex vel varius. Sed molestie ultricies sodales. Phasellus quam sem, sagittis non ornare et, posuere sit amet ligula. Vivamus dignissim mi sit amet sapien suscipit, sed sollicitudin metus faucibus. Nullam vitae ultricies ante. Quisque faucibus mi sit amet ligula suscipit tincidunt. Nunc sed augue pharetra, efficitur velit blandit, interdum est.\nSed suscipit viverra erat, sollicitudin fringilla orci tempus et. Vestibulum pellentesque nulla sed scelerisque venenatis. Cras augue velit, dapibus vel luctus sit amet, interdum ut erat. Praesent ac eros at tellus egestas luctus vitae vel nisi. Aliquam erat volutpat. Fusce felis neque, dignissim ac commodo non, euismod in est. Mauris maximus ac purus vel convallis. Sed efficitur vitae mauris ut tristique. Nam mi augue, elementum quis mi et, mattis lacinia leo. Etiam tempor hendrerit enim vel venenatis. Nullam molestie metus et sem ultricies elementum.\nPellentesque eget tortor vel neque rutrum sodales. Morbi vitae cursus nibh. Curaitur quis magna eu lorem venenatis tempus non non leo. Duis eget suscipit neque. Etiam finibus nunc massa, vel venenatis elit imperdiet fringilla. Pellentesque non quam vitae arcu pretium ullamcorper eu at metus. Donec euismod interdum sem, a volutpat nulla molestie quis. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed rhoncus turpis sit amet tellus aliquam, vel fringilla odio eleifend. Ut non ultrices mi. Maecenas diam augue, semper cursus ultricies at, hendrerit ac mi.\nSed elementum faucibus arcu, sed consequat metus luctus sed. Ut non metus risus. Nam eget blandit diam, at ultricies elit. Sed eget tortor vel erat varius semper eget sit amet neque. Vivamus dignissim maximus nulla, nec semper sapien luctus at. Curabitur ac lorem id odio fringilla sollicitudin. Nullam lobortis varius neque, eu feugiat purus faucibus quis. Donec scelerisque elit ut lacus ullamcorper, quis accumsan sapien elementum. Praesent interdum et ligula lacinia accumsan. Sed ligula enim, cursus ut erat ac, tristique ullamcorper erat.\nQuisque dictum sodales tortor in pulvinar. Sed malesuada sollicitudin felis. Vestibulum hendrerit mi metus, vel dictum diam fermentum vel. Morbi vestibulum sodales sapien, nec sagittis odio porttitor sit amet. Mauris at urna ultricies, tempus magna ac, consequat justo. Etiam suscipit leo nisi, eget bibendum dolor elementum a. Vestibulum id orci massa. Ut ligula leo, malesuada in imperdiet vehicula, facilisis laoreet erat. Aenean hendrerit quis arcu eget luctus. Nullam ornare urna consequat ligula ultricies pharetra. Nulla aliquet dictum tortor ac sodales. Quisque nec ipsum leo. Ut varius enim quis accumsan fermentum.\r\n\r\n\r\n";
         c->client_request.clear();
@@ -166,6 +158,25 @@ void MainServer::run() {
     struct kevent evList[32];
     int num_events;
 
+	std::vector<v_server>::iterator it = myvs.begin();
+	std::map<std::string, v_server> extra;
+	std::map<std::string, v_server> ::iterator e_it = extra.begin();
+
+	while (it != myvs.end())
+	{
+		extra_map.insert(std::make_pair((*it).get_host() + ":" + std::to_string((*it).get_port()) + "#" + (*it).get_name(), *it));
+		extra.insert(std::make_pair((*it).get_host() + ":" + std::to_string((*it).get_port()), *it));
+		it++;
+	}
+	myvs.clear();
+
+	e_it = extra.begin();
+	while (e_it != extra.end())
+	{
+		myvs.push_back(e_it->second);
+		e_it++;
+	}
+
     std::cout << "server up and running.." << std::endl << std::endl;
     for(;;) {
         if ((num_events = kevent(keq, NULL, 0, evList, 32, NULL)) == -1)
@@ -194,224 +205,224 @@ void MainServer::run() {
 v_server::v_server(/* args */):default_page(""),par_error(0),page_error_val(0){};
 v_server::~v_server(){};
 
-void v_server::set_host(std::string str){this->host = str;};
-void v_server::set_port(std::string str){this->port = str;}
-void v_server::set_name(std::string str){this->name = str;}
-void v_server::set_limit(std::string str){
-	limit_body_s = str;
-	this->limit_body = ft_atoi(str.c_str());
-}
-void v_server::set_methods(std::string str){
-	std::vector<std::string> res = ft_split(str, ", ");
-	std::vector<std::string>::iterator it = res.begin();
-	while (it != res.end() && par_error != 1)
-	{
-		if (*it != "GET" && *it != "HEAD" && *it != "POST" && *it != "PUT" && *it != "DELETE" && *it != "CONNECT" && *it != "OPTIONS" && *it != "TRACE" && *it != "PATCH")
-			par_error = 1;
-		this->methods.push_back(*it);
-		it++;
-	}
-	this->methods.sort();
-	this->methods.unique();
-}
-void v_server::set_cgi(std::string name, std::string path){
-	cgi.insert(std::make_pair(name, path));	
-}
+// void v_server::set_host(std::string str){this->host = str;};
+// void v_server::set_port(std::string str){this->port = str;}
+// void v_server::set_name(std::string str){this->name = str;}
+// void v_server::set_limit(std::string str){
+// 	limit_body_s = str;
+// 	this->limit_body = ft_atoi(str.c_str());
+// }
+// void v_server::set_methods(std::string str){
+// 	std::vector<std::string> res = ft_split(str, ", ");
+// 	std::vector<std::string>::iterator it = res.begin();
+// 	while (it != res.end() && par_error != 1)
+// 	{
+// 		if (*it != "GET" && *it != "HEAD" && *it != "POST" && *it != "PUT" && *it != "DELETE" && *it != "CONNECT" && *it != "OPTIONS" && *it != "TRACE" && *it != "PATCH")
+// 			par_error = 1;
+// 		this->methods.push_back(*it);
+// 		it++;
+// 	}
+// 	this->methods.sort();
+// 	this->methods.unique();
+// }
+// void v_server::set_cgi(std::string name, std::string path){
+// 	cgi.insert(std::make_pair(name, path));	
+// }
 
-void v_server::cgi_parse(std::vector<std::string>::iterator it, std::vector<std::string>::iterator end){
-	std::vector<std::string> res;
-	std::string name;
-	std::string path;
+// void v_server::cgi_parse(std::vector<std::string>::iterator it, std::vector<std::string>::iterator end){
+// 	std::vector<std::string> res;
+// 	std::string name;
+// 	std::string path;
 
-	res = ft_split(*it, ":");
-	if (res.size() != 2)
-	{
-		par_error = 1;
-		return ;
-	}
-	name = res.back();
-	it++;
-	if ((*it) != "{")
-	{
-		par_error = 1;
-		return ;
-	}
-	it++;
-	while (it != end && *it != "}")
-	{
-		res = ft_split(*it, "=");
-		if (res.front() == "cgi_uri" && path.size() == 0)
-			path = res.back();
-		else if (res.front() != "root" && res.front() != "allowed_methods")
-		{
-			par_error = 1;
-			return ;
-		}
-		it++;
-	}
-	if (*it != "}" || cgi.find(name) != cgi.end())
-	{
-		par_error = 1;
-		return ;
-	}
-	set_cgi(name, path);
-}
+// 	res = ft_split(*it, ":");
+// 	if (res.size() != 2)
+// 	{
+// 		par_error = 1;
+// 		return ;
+// 	}
+// 	name = res.back();
+// 	it++;
+// 	if ((*it) != "{")
+// 	{
+// 		par_error = 1;
+// 		return ;
+// 	}
+// 	it++;
+// 	while (it != end && *it != "}")
+// 	{
+// 		res = ft_split(*it, "=");
+// 		if (res.front() == "cgi_uri" && path.size() == 0)
+// 			path = res.back();
+// 		else if (res.front() != "root" && res.front() != "allowed_methods")
+// 		{
+// 			par_error = 1;
+// 			return ;
+// 		}
+// 		it++;
+// 	}
+// 	if (*it != "}" || cgi.find(name) != cgi.end())
+// 	{
+// 		par_error = 1;
+// 		return ;
+// 	}
+// 	set_cgi(name, path);
+// }
 
 headers v_server::get_header_var(void)
 {
 	return (header_var);
 }
 
-std::string v_server::get_error_page(int val)
-{
-	std::string ret;
-	std::map<std::string, std::string>::iterator it = error_pg.find(tostring(val));
-	ret.clear();
-	if (it != error_pg.end())
-		return (it->second);
-	return (ret);
-}
+// std::string v_server::get_error_page(int val)
+// {
+// 	std::string ret;
+// 	std::map<int, std::string>::iterator it = error_pg.find(val);
+// 	ret.clear();
+// 	if (it != error_pg.end())
+// 		return (it->second);
+// 	return (ret);
+// }
 
-std::string v_server::get_body_s()
-{
-	return (limit_body_s);
-}
+// std::string v_server::get_body_s()
+// {
+// 	return (limit_body_s);
+// }
 
-void v_server::set_location(std::vector<std::string>::iterator &it, std::vector<std::string>::iterator end){
-	std::vector<std::string> res;
-	std::vector<std::string>::iterator vit;
-	location var;
-	int loc_size;
+// void v_server::set_location(std::vector<std::string>::iterator &it, std::vector<std::string>::iterator end){
+// 	std::vector<std::string> res;
+// 	std::vector<std::string>::iterator vit;
+// 	location var;
+// 	int loc_size;
 
-	res = ft_split(*it, ":");
-	vit = res.begin();
-	vit++;
-	par_error = 0;
-	if ((*vit).find("*.") != std::string::npos)
-	{
-		cgi_parse(it, end);
-	}
-	if ((*vit)[0] != '/')
-	{
-		par_error = 1;
-		return ;
-	}
-	var.set_path(*vit);
-	it++;
-	if (*it != "{")
-	{
-		par_error = 1;
-		return ;
-	}
-	it++;
-	while (it != end && *it != "}" && par_error == 0)
-	{
-		res = ft_split(*it, "=");
-		if (res.size() != 2)
-			par_error = 1;
-		if (res.front() == "default")
-			var.set_default(res.back());
-		else if (res.front() == "root")
-			var.set_root(res.back());
-		else if (res.front() == "autoindex")
-			var.set_index(res.back());
-		else if (res.front() == "allowed_methods")
-			var.set_methods(res.back());
-		else if (res.front() == "limit_client_body")
-			var.set_limit_body_size(res.back());
-		else if (res.front() == "access")
-			var.set_access(res.back());
-		else if (res.front() != "cgi_uri")
-			par_error = 1;
-		it++;
-	}
-	if (var.valid() != 1)
-		par_error = 1;
-	else
-	{
-		loc_size = locations.size();
-		locations.insert(std::make_pair(var.get_path(), var));
-		if (loc_size == (int)locations.size())
-			par_error = 1;
-	}
-}
+// 	res = ft_split(*it, ":");
+// 	vit = res.begin();
+// 	vit++;
+// 	par_error = 0;
+// 	if ((*vit).find("*.") != std::string::npos)
+// 	{
+// 		cgi_parse(it, end);
+// 	}
+// 	if ((*vit)[0] != '/')
+// 	{
+// 		par_error = 1;
+// 		return ;
+// 	}
+// 	var.set_path(*vit);
+// 	it++;
+// 	if (*it != "{")
+// 	{
+// 		par_error = 1;
+// 		return ;
+// 	}
+// 	it++;
+// 	while (it != end && *it != "}" && par_error == 0)
+// 	{
+// 		res = ft_split(*it, "=");
+// 		if (res.size() != 2)
+// 			par_error = 1;
+// 		if (res.front() == "default")
+// 			var.set_default(res.back());
+// 		else if (res.front() == "root")
+// 			var.set_root(res.back());
+// 		else if (res.front() == "autoindex")
+// 			var.set_index(res.back());
+// 		else if (res.front() == "allowed_methods")
+// 			var.set_methods(res.back());
+// 		else if (res.front() == "limit_client_body")
+// 			var.set_limit_body_size(res.back());
+// 		else if (res.front() == "access")
+// 			var.set_access(res.back());
+// 		else if (res.front() != "cgi_uri")
+// 			par_error = 1;
+// 		it++;
+// 	}
+// 	if (var.valid() != 1)
+// 		par_error = 1;
+// 	else
+// 	{
+// 		loc_size = locations.size();
+// 		locations.insert(std::make_pair(var.get_path(), var));
+// 		if (loc_size == (int)locations.size())
+// 			par_error = 1;
+// 	}
+// }
 
-void v_server::set_error(std::vector<std::string> res){
-	std::vector<std::string>::iterator it = res.begin();
-	std::vector<std::string> locs;
-	it++;
-	locs = ft_split(*it, ",");
-	it = locs.begin();
-	while (it != locs.end())
-	{
-		error_pg[*it] = res.back();
-		it++;
-	}
-};
+// void v_server::set_error(std::vector<std::string> res){
+// 	std::vector<std::string>::iterator it = res.begin();
+// 	std::vector<std::string> locs;
+// 	it++;
+// 	locs = ft_split(*it, ",");
+// 	it = locs.begin();
+// 	while (it != locs.end())
+// 	{
+// 		error_pg[*it] = res.back();
+// 		it++;
+// 	}
+// };
 
-std::string v_server::get_host(){return (this->host);};
-std::string v_server::get_port(){return (this->port);};
-int v_server::get_limit(){return (this->limit_body);};
-std::list<std::string> v_server::get_methods(){return (this->methods);};
-std::string v_server::get_name(){return (this->name);};
+// int         v_server::get_port() const { return (this->port); }
+// std::string v_server::get_host() const { return (this->host); }
+// int         v_server::get_limit() const { return (this->limit_body); }
+// std::list<std::string>       v_server::get_methods() const { return (this->methods); }
+// std::string     v_server::get_name() const { return (this->name); }
 
-bool v_server::check(){
-	if (par_error)
-		return false;
-	if (!is_digits(port) || !check_host(host))
-		return false;
-	return true;
-};
-void v_server::print_server(){
-	std::map<std::string, location>::iterator it;
-	std::list<std::string>::iterator lit;
-	std::map<std::string, std::string>::iterator mit;
-	std::cout << "host: " + host << std::endl;
-	std::cout << "port: " + port << std::endl;
-	std::cout << "name: " + name << std::endl;
-	std::cout << "root: " + root << std::endl;
-	std::cout << "location: ";
-	it = locations.begin();
-	while (it != locations.end())
-	{
-		it->second.print_location();
-		it++;
-	}
-	std::cout << std::endl;
-	std::cout << "limit body: " << limit_body << std::endl;
-	std::cout << "methods: ";
-	lit = methods.begin();
-	while (lit != methods.end())
-	{
-		std::cout << *lit << "\t";
-		lit++;
-	}
-	std::cout << std::endl;
-	std::cout << "cgi: "<<std::endl;
-	mit = cgi.begin();
-	while (cgi.end() != mit)
-	{
-		std::cout << "file ext: " << mit->first << " ---->  cgi_path: " << mit->second << std::endl;
-		mit++;
-	}
-	std::cout << "Error Pages: ";
-	mit = error_pg.begin();
-	while (mit != error_pg.end())
-	{
-		std::cout << mit->first + " ==> " + mit->second + "\n";
-		mit++;
-	}
-	std::cout << std::endl;
-};
+// bool v_server::check(){
+// 	if (par_error)
+// 		return false;
+// 	if (!is_digits(port) || !check_host(host))
+// 		return false;
+// 	return true;
+// };
+// void v_server::print_server(){
+// 	std::map<std::string, location>::iterator it;
+// 	std::list<std::string>::iterator lit;
+// 	std::map<std::string, std::string>::iterator mit;
+// 	std::cout << "host: " + host << std::endl;
+// 	std::cout << "port: " + port << std::endl;
+// 	std::cout << "name: " + name << std::endl;
+// 	std::cout << "root: " + root << std::endl;
+// 	std::cout << "location: ";
+// 	it = locations.begin();
+// 	while (it != locations.end())
+// 	{
+// 		it->second.print_location();
+// 		it++;
+// 	}
+// 	std::cout << std::endl;
+// 	std::cout << "limit body: " << limit_body << std::endl;
+// 	std::cout << "methods: ";
+// 	lit = methods.begin();
+// 	while (lit != methods.end())
+// 	{
+// 		std::cout << *lit << "\t";
+// 		lit++;
+// 	}
+// 	std::cout << std::endl;
+// 	std::cout << "cgi: "<<std::endl;
+// 	mit = cgi.begin();
+// 	while (cgi.end() != mit)
+// 	{
+// 		std::cout << "file ext: " << mit->first << " ---->  cgi_path: " << mit->second << std::endl;
+// 		mit++;
+// 	}
+// 	std::cout << "Error Pages: ";
+// 	mit = error_pg.begin();
+// 	while (mit != error_pg.end())
+// 	{
+// 		std::cout << mit->first + " ==> " + mit->second + "\n";
+// 		mit++;
+// 	}
+// 	std::cout << std::endl;
+// };
 
-void v_server::update_port(std::string val)
-{
-	this->port = val;
-}
+// void v_server::update_port(std::string val)
+// {
+// 	this->port = val;
+// }
 
-void v_server::reset_header(){
+// void v_server::reset_header(){
 
-};
+// };
 
 std::string v_server::get_method(){
 	return (req_method);
@@ -450,7 +461,7 @@ void v_server::set_header(char *str){
 	file_open = f_log.file;
 	if (f_log.valid == 1 && (f_log.req != "PUT" && f_log.req != "POST"))
 	{
-		header_var.push("Content-Length", tostring(f_log.size));
+		header_var.push("Content-Length", std::to_string(f_log.size));
 		timeinfo = localtime (&f_log.st.st_mtime);
 		strftime (buff,80,"%a, %e %b %Y %H:%M:%S %Z",timeinfo);
 	}
@@ -701,15 +712,15 @@ std::string v_server::put_method()
 	return (response);
 }
 
-void v_server::set_root(std::string r)
-{
-	this->root = r;
-}
+// void v_server::set_root(std::string r)
+// {
+// 	this->root = r;
+// }
 
-std::string v_server::get_root()
-{
-	return this->root;
-}
+// std::string v_server::get_root()
+// {
+// 	return this->root;
+// }
 
 void v_server::set_qu_string(std::string str){
 	qu_string = str;	
@@ -767,9 +778,16 @@ void v_server::update_location()
 		if (it->second.get_root().size() == 0)
 			it->second.set_root(root);
 		if (it->second.get_methods().size() == 0)
-			it->second.set_methods(get_string_methods());
+		{
+			std::list<std::string>::iterator sit = methods.begin();
+			while (sit != methods.end())
+			{
+				it->second.set_method(*sit);
+				sit++;
+			}
+		}
 		if (it->second.get_body_s().size() == 0)
-			it->second.set_limit_body_size(tostring(MAX_BODY));
+			it->second.set_limit_body_size(MAX_BODY);
 		it++;
 	}
 }
@@ -827,13 +845,13 @@ char ** v_server::setup_env()
 	var.push("PATH_INFO=", f_log.s_file);
     var.push("PATH_TRANSLATED=", f_log.file);
     var.push("QUERY_STRING=", f_log.q_string); //POST req after The "?"
-    var.push("CONTENT_LENGTH=",  tostring(qu_len)); //
+    var.push("CONTENT_LENGTH=",  std::to_string(qu_len)); //
     var.push("REMOTE_ADDR=", client_ip); //ip of user 
     var.push("REMOTE_IDENT=", header_var.get_key("User-Agent"));
 	var.push("REQUEST_METHOD=", f_log.req);
 	var.push("REQUEST_URI=", f_log.first_req);
 	var.push("SERVER_NAME=", name);
-	var.push("SERVER_PORT=", port);
+	var.push("SERVER_PORT=", std::to_string(port));
 	var.push("SCRIPT_FILENAME=", f_log.file);
 	var.push("SCRIPT_NAME=", f_log.file);
 	
@@ -915,7 +933,7 @@ std::map<std::string, std::string>::iterator it;
     header_var.push("Accept-Language", "");
     header_var.push("Last-Modified", "");
 	header_var.push("Date", "");
-    header_var.push("Content-Length", tostring(tmp.size())); // size body
+    header_var.push("Content-Length", std::to_string(tmp.size())); // size body
 	cgi_status_code(response);
 	sent_response = header_var.header_msg() + "\r\n" + tmp;
 	return (sent_response);
@@ -1030,7 +1048,7 @@ std::string v_server::run_error(int val)
 	timeinfo = localtime (&rawtime);
 	strftime (buff,80,"%a, %e %b %Y %H:%M:%S %Z",timeinfo);
 	header_var.push("Date", buff);
-	header_var.push("Content-Length", tostring(ret.size()));
+	header_var.push("Content-Length", std::to_string(ret.size()));
 	header_var.push("Accept-Charsets", "");
 	header_var.push("Accept-Encoding", "");
 	header_var.push("Accept-Language", "");
@@ -1078,7 +1096,7 @@ std::string v_server::run_file()
 	}
 	if (req_method == "HEAD")
 		header_var.push("Content-Type", "");
-	header_var.push("Content-Length", tostring(s_file.size));
+	header_var.push("Content-Length", std::to_string(s_file.size));
 	response = header_var.header_msg() + "\r\n";
 	if (req_method == "GET")
 		response += s_file.tab;
@@ -1104,10 +1122,10 @@ std::string v_server::get_string_methods()
 	return (ret);
 }
 
-int v_server::value_port()
-{
-	return (ft_atoi(port.c_str()));
-}
+// int v_server::value_port()
+// {
+// 	return (ft_atoi(port.c_str()));
+// }
 
 
 std::string v_server::get_file(std::map<std::string, location>::iterator loc, std::string s_root)
